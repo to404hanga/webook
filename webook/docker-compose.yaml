@@ -1,0 +1,24 @@
+# 启动命令
+# C:\'Program Files'\Docker\Docker\resources\bin\docker.exe compose up
+
+version: "3"
+# docker compose 由几个服务组成
+services:
+  # 服务名: mysql8
+  mysql8:
+    # 镜像
+    image: mysql:8.0
+    # 重启策略
+    restart: always
+    # 命令参数
+    command: --default-authentication-plugin=mysql_native_password
+    # 环境变量
+    environment:
+      # mysql root 用户密码
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      # 初始化脚本
+      - ./script/mysql/:/docker-entrypoint-initdb.d/
+    ports:
+      # docker 外部通过 13316 端口访问
+      - 13316:3306
