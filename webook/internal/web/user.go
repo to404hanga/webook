@@ -9,11 +9,16 @@ import (
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
 	emailRegexPattern    = `^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`
 	passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,72}$`
+)
+
+var (
+	JWTKey = []byte("EZUAnsruwZew6sVuEXUhRjr7p9INoqnw2EkrFr47oH2Q9D99dESoa3LTVklrKP8G")
 )
 
 // lsh040321@petalmail.com
@@ -37,7 +42,8 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 	users := server.Group("/users")
 	{
 		users.POST("/signup", h.SignUp)
-		users.POST("/login", h.Login)
+		// users.POST("/login", h.Login)
+		users.POST("/login", h.LoginJWT)
 		users.POST("/edit", h.Edit)
 		users.GET("/profile", h.Profile)
 	}
@@ -86,6 +92,41 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "注册成功")
 	case service.ErrDuplicateEmail:
 		ctx.String(http.StatusOK, "该邮箱已被注册")
+	default:
+		ctx.String(http.StatusOK, "系统错误")
+	}
+}
+
+func (h *UserHandler) LoginJWT(ctx *gin.Context) {
+	type LoginReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	var req LoginReq
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+
+	user, err := h.svc.Login(ctx, req.Email, req.Password)
+	switch err {
+	case nil:
+		uc := UserClaims{
+			UserId:    user.Id,
+			UserAgent: ctx.GetHeader("User-Agent"),
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)), // 30 分钟过期
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS512, uc)
+		tokenStr, err := token.SignedString(JWTKey)
+		if err != nil {
+			ctx.String(http.StatusOK, "系统错误")
+			return
+		}
+		ctx.Header("x-jwt-token", tokenStr)
+		ctx.String(http.StatusOK, "登陆成功")
+	case service.ErrInvalidUserOrPassword:
+		ctx.String(http.StatusOK, "用户名或密码错误")
 	default:
 		ctx.String(http.StatusOK, "系统错误")
 	}
@@ -171,4 +212,10 @@ func (h *UserHandler) Profile(ctx *gin.Context) {
 		AboutMe:  user.AboutMe,
 		Birthday: user.Birthday.Format(time.DateOnly),
 	})
+}
+
+type UserClaims struct {
+	jwt.RegisteredClaims
+	UserId    int64
+	UserAgent string
 }

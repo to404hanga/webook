@@ -22,3 +22,12 @@ services:
     ports:
       # docker 外部通过 13316 端口访问
       - 13316:3306
+  
+  # redis
+  redis:
+    image: "bitnami/redis:latest"
+    restart: always
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "16379:6379"
