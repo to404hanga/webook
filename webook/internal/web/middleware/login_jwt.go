@@ -17,7 +17,7 @@ type LoginJWTMiddlewareBuilder struct {
 func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		path := ctx.Request.URL.Path
-		if path == "/users/signup" || path == "/users/login" {
+		if path == "/users/signup" || path == "/users/login" || path == "/users/login_sms/code/send" || path == "/users/login_sms" {
 			return
 		}
 		// Bearer XXX
@@ -53,7 +53,7 @@ func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 
 		expireTime := uc.ExpiresAt
 		if time.Until(expireTime.Time) < time.Second*50 {
-			uc.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute * 15))
+			uc.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute * 30))
 			tokenStr, err := token.SignedString(web.JWTKey)
 			if err != nil {
 				fmt.Println(err)
