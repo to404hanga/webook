@@ -21,6 +21,7 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (domain.User, error)
 	UpdateById(ctx context.Context, user domain.User) error
 	FindById(ctx context.Context, id int64) (domain.User, error)
+	FindById_SetCacheAsync(ctx context.Context, id int64) (domain.User, error)
 }
 
 type CachedUserRepository struct {
@@ -90,7 +91,43 @@ func (repo *CachedUserRepository) UpdateById(ctx context.Context, user domain.Us
 	return repo.dao.UpdateById(ctx, repo.toEntity(user))
 }
 
+// 使用 mock 进行单元测试时只可使用同步的写法
 func (repo *CachedUserRepository) FindById(ctx context.Context, id int64) (domain.User, error) {
+	du, err := repo.cache.Get(ctx, id)
+	switch err {
+	case nil:
+		return du, nil
+	case cache.ErrKeyNotExist:
+		user, err := repo.dao.FindById(ctx, id)
+		if err != nil {
+			return domain.User{}, err
+		}
+		du = repo.toDomain(user)
+
+		// // 异步刷新缓存，提高性能
+		// go func() {
+		// 	err = repo.cache.Set(ctx, du)
+		// 	if err != nil {
+		// 		// 可能导致缓存击穿
+		// 		log.Println(err)
+		// 	}
+		// }()
+
+		err = repo.cache.Set(ctx, du)
+		if err != nil {
+			// 可能导致缓存击穿
+			log.Println(err)
+		}
+
+		return du, nil
+	default:
+		// redis 异常，类似降级
+		return domain.User{}, err
+	}
+}
+
+// 异步刷新缓存的 FindById 方法
+func (repo *CachedUserRepository) FindById_SetCacheAsync(ctx context.Context, id int64) (domain.User, error) {
 	du, err := repo.cache.Get(ctx, id)
 	switch err {
 	case nil:
