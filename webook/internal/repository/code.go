@@ -5,7 +5,10 @@ import (
 	"webook/internal/repository/cache"
 )
 
-var ErrCodeVerifyTooMany = cache.ErrCodeVerifyTooMany
+var (
+	ErrCodeVerifyTooMany = cache.ErrCodeVerifyTooMany
+	ErrCodeSendTooMany   = cache.ErrCodeSendTooMany
+)
 
 type CodeRepository interface {
 	Set(ctx context.Context, biz, phone, code string) error

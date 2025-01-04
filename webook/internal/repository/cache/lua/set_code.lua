@@ -1,7 +1,7 @@
 local key = KEYS[1]
 local cntKey = key..":cnt"
 -- 准备存储的验证码
-local val - ARGV[1]
+local val = ARGV[1]
 
 local ttl = tonumber(redis.call("ttl", key))
 
