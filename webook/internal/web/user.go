@@ -9,6 +9,7 @@ import (
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -34,6 +35,7 @@ func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserH
 		passwordRexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
 		svc:            svc,
 		codeSvc:        codeSvc,
+		jwtHandler:     *NewJwtHandler(),
 	}
 }
 
@@ -45,6 +47,7 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 		users.POST("/login", h.LoginJWT)
 		users.POST("/edit", h.Edit)
 		users.GET("/profile", h.Profile)
+		users.GET("/refresh_token", h.RefreshToken)
 
 		users.POST("/login_sms/code/send", h.SendSMSLoginCode)
 		users.POST("/login_sms", h.LoginSMS)
@@ -122,7 +125,15 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context) {
 		})
 		return
 	}
-	h.setJWTToken(ctx, user.Id)
+
+	if err = h.setRefreshToken(ctx, user.Id); err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if err = h.setJWTToken(ctx, user.Id); err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 	ctx.JSON(http.StatusOK, Result{
 		Code: 200,
 		Msg:  "登陆成功",
@@ -190,7 +201,14 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 	user, err := h.svc.Login(ctx, req.Email, req.Password)
 	switch err {
 	case nil:
-		h.setJWTToken(ctx, user.Id)
+		if err = h.setRefreshToken(ctx, user.Id); err != nil {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		if err = h.setJWTToken(ctx, user.Id); err != nil {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
 		ctx.String(http.StatusOK, "登陆成功")
 	case service.ErrInvalidUserOrPassword:
 		ctx.String(http.StatusOK, "用户名或密码错误")
@@ -283,4 +301,28 @@ func (h *UserHandler) Profile(ctx *gin.Context) {
 
 func (h *UserHandler) ProfileJWT(ctx *gin.Context) {
 
+}
+
+func (h *UserHandler) RefreshToken(ctx *gin.Context) {
+	tokenStr := ExtractToken(ctx)
+	var rc RefreshClaims
+	token, err := jwt.ParseWithClaims(tokenStr, &rc, func(t *jwt.Token) (interface{}, error) {
+		return []byte(h.refreshKey), nil
+	})
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if token == nil || !token.Valid {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if err = h.setJWTToken(ctx, rc.Uid); err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Code: 200,
+		Msg:  "OK",
+	})
 }

@@ -24,9 +24,9 @@ func InitWebServer(middlewares []gin.HandlerFunc, userHandler *web.UserHandler, 
 func InitGinMiddlewares(redisClient redis.Cmdable) []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		cors.New(cors.Config{
-			//	AllowCredentials: true,
-			//	AllowHeaders:     []string{"Content-Type", "Authorization"},
-			//	ExposeHeaders:    []string{"X-Jwt-Token", "X-Refresh-Token"},
+			AllowCredentials: true,
+			AllowHeaders:     []string{"Content-Type", "Authorization"},
+			ExposeHeaders:    []string{"X-Jwt-Token", "X-Refresh-Token"},
 			AllowOriginFunc: func(origin string) bool {
 				if strings.HasPrefix(origin, "http://localhost") {
 					return true

@@ -25,6 +25,7 @@ func NewOAuth2WechatHandler(svc wechat.Service, userSvc service.UserService) *OA
 		userSvc:         userSvc,
 		key:             []byte("EZUAnsruwZew6sVuEXUhRjr7p9INoqnw2EkrFr47oH2Q9D99dESoa3LTVklrKP22"),
 		stateCookieName: "jwt-state",
+		jwtHandler:      *NewJwtHandler(),
 	}
 }
 
@@ -84,7 +85,15 @@ func (h *OAuth2WechatHandler) Callback(ctx *gin.Context) {
 		})
 		return
 	}
-	h.setJWTToken(ctx, user.Id)
+
+	if err = h.setRefreshToken(ctx, user.Id); err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if err = h.setJWTToken(ctx, user.Id); err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 	ctx.JSON(http.StatusOK, Result{
 		Code: http.StatusOK,
 		Msg:  "OK",
