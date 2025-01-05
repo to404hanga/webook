@@ -14,11 +14,25 @@ import (
 type LoginJWTMiddlewareBuilder struct {
 }
 
+var paths = []string{
+	"/users/signup",
+	"/users/login",
+	"/users/login_sms/code/send",
+	"/users/login_sms",
+	"/oauth2/wechat/authurl",
+	"/oauth2/wechat/callback",
+}
+
 func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		path := ctx.Request.URL.Path
-		if path == "/users/signup" || path == "/users/login" || path == "/users/login_sms/code/send" || path == "/users/login_sms" {
-			return
+		// if path == "/users/signup" || path == "/users/login" || path == "/users/login_sms/code/send" || path == "/users/login_sms" {
+		// 	return
+		// }
+		for _, p := range paths {
+			if p == path {
+				return
+			}
 		}
 		// Bearer XXX
 		authCode := ctx.GetHeader("Authorization")

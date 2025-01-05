@@ -16,6 +16,7 @@ var (
 
 type UserService interface {
 	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
+	FindOrCreateByWechat(ctx context.Context, info domain.WechatInfo) (domain.User, error)
 	SignUp(ctx context.Context, user domain.User) error
 	Login(ctx context.Context, email, password string) (domain.User, error)
 	EditNonSensitive(ctx context.Context, user domain.User) error
@@ -30,6 +31,22 @@ func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{
 		repo: repo,
 	}
+}
+
+func (svc *userService) FindOrCreateByWechat(ctx context.Context, info domain.WechatInfo) (domain.User, error) {
+	user, err := svc.repo.FindByWechat(ctx, info.OpenID)
+	if err != repository.ErrUserNotFound {
+		return user, err
+	}
+	err = svc.repo.Create(ctx, domain.User{
+		WechatInfo: info,
+	})
+	if err != nil && err != repository.ErrDuplicateUser {
+		return domain.User{}, err
+	}
+	// 要么是用户已存在，要么是用户创建成功
+	// ! 主从延迟，理论上强制走主库
+	return svc.repo.FindByWechat(ctx, info.OpenID)
 }
 
 func (svc *userService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {

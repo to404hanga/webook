@@ -11,4 +11,5 @@ type User struct {
 	Birthday   time.Time
 	AboutMe    string
 	Phone      string
+	WechatInfo WechatInfo
 }
