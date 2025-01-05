@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"webook/internal/service"
 	"webook/internal/service/oauth2/wechat"
+	myJwt "webook/internal/web/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -12,20 +13,20 @@ import (
 )
 
 type OAuth2WechatHandler struct {
-	jwtHandler
+	myJwt.Handler
 	svc             wechat.Service
 	userSvc         service.UserService
 	key             []byte
 	stateCookieName string
 }
 
-func NewOAuth2WechatHandler(svc wechat.Service, userSvc service.UserService) *OAuth2WechatHandler {
+func NewOAuth2WechatHandler(svc wechat.Service, userSvc service.UserService, handler myJwt.Handler) *OAuth2WechatHandler {
 	return &OAuth2WechatHandler{
 		svc:             svc,
 		userSvc:         userSvc,
 		key:             []byte("EZUAnsruwZew6sVuEXUhRjr7p9INoqnw2EkrFr47oH2Q9D99dESoa3LTVklrKP22"),
 		stateCookieName: "jwt-state",
-		jwtHandler:      *NewJwtHandler(),
+		Handler:         handler,
 	}
 }
 
@@ -86,13 +87,8 @@ func (h *OAuth2WechatHandler) Callback(ctx *gin.Context) {
 		return
 	}
 
-	if err = h.setRefreshToken(ctx, user.Id); err != nil {
+	if err = h.SetLoginToken(ctx, user.Id); err != nil {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-	if err = h.setJWTToken(ctx, user.Id); err != nil {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
-		return
 	}
 	ctx.JSON(http.StatusOK, Result{
 		Code: http.StatusOK,

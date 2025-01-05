@@ -2,13 +2,20 @@ package middleware
 
 import (
 	"net/http"
-	"webook/internal/web"
+	myJwt "webook/internal/web/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type LoginJWTMiddlewareBuilder struct {
+	myJwt.Handler
+}
+
+func NewLoginJWTMiddlewareBuilder(handler myJwt.Handler) *LoginJWTMiddlewareBuilder {
+	return &LoginJWTMiddlewareBuilder{
+		Handler: handler,
+	}
 }
 
 var paths = []string{
@@ -28,10 +35,10 @@ func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 				return
 			}
 		}
-		tokenStr := web.ExtractToken(ctx)
-		var uc web.UserClaims
+		tokenStr := m.ExtractToken(ctx)
+		var uc myJwt.UserClaims
 		token, err := jwt.ParseWithClaims(tokenStr, &uc, func(t *jwt.Token) (interface{}, error) {
-			return web.JWTKey, nil
+			return myJwt.JWTKey, nil
 		})
 		if err != nil {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -41,6 +48,12 @@ func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+
+		if err = m.CheckSession(ctx, uc.Ssid); err != nil {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
 		ctx.Set("user", uc)
 	}
 }

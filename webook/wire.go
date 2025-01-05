@@ -8,6 +8,7 @@ import (
 	"webook/internal/repository/dao"
 	"webook/internal/service"
 	"webook/internal/web"
+	myJwt "webook/internal/web/jwt"
 	"webook/ioc"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,7 @@ func InitWebServer() *gin.Engine {
 		cache.NewCodeCache, cache.NewUserCache,
 		repository.NewUserRepository, repository.NewCodeRepository,
 		ioc.InitSMSService, ioc.InitWechatService, service.NewUserService, service.NewCodeService,
-		web.NewUserHandler, web.NewOAuth2WechatHandler,
+		web.NewUserHandler, web.NewOAuth2WechatHandler, myJwt.NewRedisJWTHandler,
 		ioc.InitGinMiddlewares, ioc.InitWebServer,
 	)
 	return gin.Default()
