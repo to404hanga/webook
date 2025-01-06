@@ -1,15 +1,22 @@
 package ioc
 
 import (
-	"webook/config"
 	"webook/internal/repository/dao"
+	"webook/pkg/logger"
 
+	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	glogger "gorm.io/gorm/logger"
 )
 
-func InitDB() *gorm.DB {
-	db, err := gorm.Open(mysql.Open(config.Config.DB.DSN))
+func InitDB(l logger.Logger) *gorm.DB {
+	db, err := gorm.Open(mysql.Open(viper.GetString("db.dsn")), &gorm.Config{
+		Logger: glogger.New(gormLoggerFunc(l.Debug), glogger.Config{
+			SlowThreshold: 0, // 关闭慢查询
+			LogLevel:      glogger.Info,
+		}),
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -19,4 +26,10 @@ func InitDB() *gorm.DB {
 		panic(err)
 	}
 	return db
+}
+
+type gormLoggerFunc func(msg string, fields ...logger.Field)
+
+func (g gormLoggerFunc) Printf(msg string, val ...interface{}) {
+	g(msg, logger.Any("args", val))
 }

@@ -10,11 +10,13 @@ import (
 	"webook/internal/domain"
 	"webook/internal/service"
 	svcmocks "webook/internal/service/mocks"
+	"webook/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/tj/assert"
+	"go.uber.org/zap"
 )
 
 func TestUserHandler_SignUp(t *testing.T) {
@@ -185,7 +187,7 @@ func TestUserHandler_SignUp(t *testing.T) {
 
 			// 构造 handler
 			userSvc, codeSvc := tc.mock(ctrl)
-			hdl := NewUserHandler(userSvc, codeSvc, nil)
+			hdl := NewUserHandler(logger.NewZapLogger(zap.L()), userSvc, codeSvc, nil)
 
 			// 准备服务器，注册路由
 			server := gin.Default()
@@ -228,7 +230,7 @@ func TestEmailPattern(t *testing.T) {
 		},
 	}
 
-	h := NewUserHandler(nil, nil, nil)
+	h := NewUserHandler(logger.NewZapLogger(zap.L()), nil, nil, nil)
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

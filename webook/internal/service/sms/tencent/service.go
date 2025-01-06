@@ -3,6 +3,7 @@ package tencent
 import (
 	"context"
 	"fmt"
+	"webook/pkg/logger"
 
 	"github.com/ecodeclub/ekit"
 	"github.com/ecodeclub/ekit/slice"
@@ -13,13 +14,15 @@ type Service struct {
 	client   *sms.Client
 	appId    *string
 	signName *string
+	logger   logger.Logger
 }
 
-func NewService(client *sms.Client, appId, signName string) *Service {
+func NewService(client *sms.Client, appId, signName string, logger logger.Logger) *Service {
 	return &Service{
 		client:   client,
 		appId:    &appId,
 		signName: &signName,
+		logger:   logger,
 	}
 }
 
@@ -33,9 +36,11 @@ func (s *Service) Send(ctx context.Context, tplId string, args []string, numbers
 	req.PhoneNumberSet = s.toPtrSlice(numbers)
 
 	res, err := s.client.SendSms(req)
+	s.logger.Debug("请求腾讯SendSmd接口", logger.Any("req", req), logger.Any("resp", res))
 	if err != nil {
 		return err
 	}
+
 	for _, statusPtr := range res.Response.SendStatusSet {
 		if statusPtr == nil {
 			// 不可能进入这里

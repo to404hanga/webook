@@ -49,6 +49,21 @@ func (mr *MockUserServiceMockRecorder) EditNonSensitive(ctx, user interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditNonSensitive", reflect.TypeOf((*MockUserService)(nil).EditNonSensitive), ctx, user)
 }
 
+// FindById mocks base method.
+func (m *MockUserService) FindById(ctx context.Context, userId int64) (domain.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindById", ctx, userId)
+	ret0, _ := ret[0].(domain.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindById indicates an expected call of FindById.
+func (mr *MockUserServiceMockRecorder) FindById(ctx, userId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindById", reflect.TypeOf((*MockUserService)(nil).FindById), ctx, userId)
+}
+
 // FindOrCreate mocks base method.
 func (m *MockUserService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
 	m.ctrl.T.Helper()
@@ -92,21 +107,6 @@ func (m *MockUserService) Login(ctx context.Context, email, password string) (do
 func (mr *MockUserServiceMockRecorder) Login(ctx, email, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockUserService)(nil).Login), ctx, email, password)
-}
-
-// Profile mocks base method.
-func (m *MockUserService) Profile(ctx context.Context, userId int64) (domain.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Profile", ctx, userId)
-	ret0, _ := ret[0].(domain.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Profile indicates an expected call of Profile.
-func (mr *MockUserServiceMockRecorder) Profile(ctx, userId interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Profile", reflect.TypeOf((*MockUserService)(nil).Profile), ctx, userId)
 }
 
 // SignUp mocks base method.

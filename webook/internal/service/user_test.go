@@ -7,9 +7,11 @@ import (
 	"webook/internal/domain"
 	"webook/internal/repository"
 	repomocks "webook/internal/repository/mocks"
+	"webook/pkg/logger"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -104,7 +106,7 @@ func TestUserServiceLogin(t *testing.T) {
 			defer ctrl.Finish()
 
 			repo := tc.mock(ctrl)
-			service := NewUserService(repo)
+			service := NewUserService(repo, logger.NewZapLogger(zap.L()))
 			user, err := service.Login(tc.ctx, tc.email, tc.password)
 			assert.Equal(t, tc.wantUser, user)
 			assert.Equal(t, tc.wantErr, err)

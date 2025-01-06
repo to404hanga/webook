@@ -5,6 +5,7 @@ import (
 	"errors"
 	"webook/internal/domain"
 	"webook/internal/repository"
+	"webook/pkg/logger"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -20,16 +21,18 @@ type UserService interface {
 	SignUp(ctx context.Context, user domain.User) error
 	Login(ctx context.Context, email, password string) (domain.User, error)
 	EditNonSensitive(ctx context.Context, user domain.User) error
-	Profile(ctx context.Context, userId int64) (domain.User, error)
+	FindById(ctx context.Context, userId int64) (domain.User, error)
 }
 
 type userService struct {
-	repo repository.UserRepository
+	repo   repository.UserRepository
+	logger logger.Logger
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
+func NewUserService(repo repository.UserRepository, logger logger.Logger) UserService {
 	return &userService{
-		repo: repo,
+		repo:   repo,
+		logger: logger,
 	}
 }
 
@@ -38,6 +41,9 @@ func (svc *userService) FindOrCreateByWechat(ctx context.Context, info domain.We
 	if err != repository.ErrUserNotFound {
 		return user, err
 	}
+
+	svc.logger.Info("新用户", logger.Any("wechatInfo", info))
+
 	err = svc.repo.Create(ctx, domain.User{
 		WechatInfo: info,
 	})
@@ -55,6 +61,9 @@ func (svc *userService) FindOrCreate(ctx context.Context, phone string) (domain.
 	if err != repository.ErrUserNotFound {
 		return user, err
 	}
+
+	svc.logger.Info("新用户", logger.Any("phone", ""))
+
 	// 如果用户不存在，则创建一个新用户
 	err = svc.repo.Create(ctx, domain.User{
 		Phone: phone,
@@ -70,6 +79,7 @@ func (svc *userService) FindOrCreate(ctx context.Context, phone string) (domain.
 func (svc *userService) SignUp(ctx context.Context, user domain.User) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
+		svc.logger.Error("BCrypt加密失败", logger.Error(err))
 		return err
 	}
 	user.Password = string(hash)
@@ -96,6 +106,6 @@ func (svc *userService) EditNonSensitive(ctx context.Context, user domain.User) 
 	return svc.repo.UpdateById(ctx, user)
 }
 
-func (svc *userService) Profile(ctx context.Context, userId int64) (domain.User, error) {
+func (svc *userService) FindById(ctx context.Context, userId int64) (domain.User, error) {
 	return svc.repo.FindById(ctx, userId)
 }

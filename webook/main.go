@@ -1,38 +1,89 @@
 package main
 
 import (
-	"webook/internal/web/middleware"
+	"log"
+	"time"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
+	"github.com/fsnotify/fsnotify"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	_ "github.com/spf13/viper/remote"
+	"go.uber.org/zap"
 )
 
 func main() {
+	// initViperRemote()
+	initViperWatch()
+	initLogger()
 
 	server := InitWebServer()
 
 	server.Run(":8080")
 }
 
-func useJWT(server *gin.Engine) {
-	login := &middleware.LoginMiddlewareBuilder{}
-	server.Use(login.CheckLogin())
+func initLogger() {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	zap.ReplaceGlobals(logger)
 }
 
-func useSession(server *gin.Engine) {
-	store := cookie.NewStore([]byte("secret"))
-	// 基于内存的实现
-	// 传入两个密钥，第一个用于身份验证，第二个用于加密
-	// store := memstore.NewStore([]byte("6zpKQvqguzUG92Hx4Thp9pE3KBkpoWdYpq0fvk05MaV6ehT0aZZBDFL9rxh8W5Qs"), []byte("oFZvqU3WsUiogDuvtLFNZaLVpGjQnwehzowpiQWk9gx9geikC6h6EtLK3sFctTau"))
-	// store, err := redis.NewStore(16, "tcp", "localhost:16379", "",
-	// 	[]byte("6zpKQvqguzUG92Hx4Thp9pE3KBkpoWdYpq0fvk05MaV6ehT0aZZBDFL9rxh8W5Qs"),
-	// 	[]byte("oFZvqU3WsUiogDuvtLFNZaLVpGjQnwehzowpiQWk9gx9geikC6h6EtLK3sFctTau"),
-	// )
-	// if err != nil {
-	// 	panic(err)
-	// }
+func initViperWatch() {
+	cfile := pflag.String("config", "./config/dev.yaml", "配置文件路径")
+	pflag.Parse()
 
-	login := &middleware.LoginMiddlewareBuilder{}
-	server.Use(sessions.Sessions("ssid", store), login.CheckLogin())
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(*cfile)
+
+	viper.WatchConfig()
+	viper.OnConfigChange(func(in fsnotify.Event) {
+		log.Println(viper.GetString("test.key"))
+	})
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func initViper() {
+	cfile := pflag.String("config", "./config/dev.yaml", "配置文件路径")
+	pflag.Parse()
+
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(*cfile)
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func initViperRemote() {
+	err := viper.AddRemoteProvider("etcd3", "http://localhost:2379", "/webook")
+	if err != nil {
+		panic(err)
+	}
+	viper.SetConfigType("json")
+
+	viper.OnConfigChange(func(in fsnotify.Event) {
+		log.Println("远程配置中心发生变更")
+	})
+
+	err = viper.ReadRemoteConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	go func() {
+		for {
+			err = viper.WatchRemoteConfig()
+			if err != nil {
+				panic(err)
+			}
+			log.Println("远程配置已更新")
+			time.Sleep(time.Second)
+		}
+	}()
 }
