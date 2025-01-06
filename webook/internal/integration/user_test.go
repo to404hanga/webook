@@ -11,6 +11,7 @@ import (
 	"time"
 	"webook/internal/integration/startup"
 	"webook/internal/web"
+	"webook/pkg/ginx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tj/assert"
@@ -29,7 +30,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 		after    func(t *testing.T)
 		phone    string
 		wantCode int
-		wantBody web.Result
+		wantBody ginx.Result
 	}{
 		{
 			name:   "发送成功的用例",
