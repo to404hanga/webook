@@ -11,11 +11,3 @@ type Field struct {
 	Key string
 	Val interface{}
 }
-
-func Any(key string, val interface{}) Field {
-	return Field{Key: key, Val: val}
-}
-
-func Error(val interface{}) Field {
-	return Field{Key: "error", Val: val}
-}
