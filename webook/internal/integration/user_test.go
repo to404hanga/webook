@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 	"webook/internal/integration/startup"
-	"webook/internal/web"
 	"webook/pkg/ginx"
 
 	"github.com/gin-gonic/gin"
@@ -50,7 +49,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 			},
 			phone:    "1234567890",
 			wantCode: http.StatusOK,
-			wantBody: web.Result{
+			wantBody: ginx.Result{
 				Code: 200,
 				Msg:  "发送成功",
 			},
@@ -60,7 +59,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 			before:   func(t *testing.T) {},
 			after:    func(t *testing.T) {},
 			wantCode: http.StatusOK,
-			wantBody: web.Result{
+			wantBody: ginx.Result{
 				Code: 400,
 				Msg:  "请输入手机号",
 			},
@@ -87,7 +86,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 			},
 			phone:    "1234567890",
 			wantCode: http.StatusOK,
-			wantBody: web.Result{
+			wantBody: ginx.Result{
 				Code: 429,
 				Msg:  "短信发送太频繁，请稍后再试",
 			},
@@ -113,7 +112,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 			},
 			phone:    "1234567890",
 			wantCode: http.StatusOK,
-			wantBody: web.Result{
+			wantBody: ginx.Result{
 				Code: 500,
 				Msg:  "系统错误",
 			},
@@ -136,7 +135,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 				return
 			}
 
-			var res web.Result
+			var res ginx.Result
 			err = json.NewDecoder(recorder.Body).Decode(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, tc.wantBody, res)
