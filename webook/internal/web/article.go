@@ -36,9 +36,20 @@ func NewArticleHandler(svc service.ArticleService, intrSvc intrv1.InteractiveSer
 }
 
 func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
-	article := server.Group("/article")
+	articles := server.Group("/articles")
 	{
-		article.POST("/edit", ginx.WrapBodyAndClaims(h.Edit))
+		articles.POST("/edit", ginx.WrapBodyAndClaims(h.Edit))
+		articles.POST("/publish", ginx.WrapBodyAndClaims(h.Publish))
+		articles.POST("/withdraw", ginx.WrapBodyAndClaims(h.Withdraw))
+		articles.GET("/detail/:id", h.Detail)
+		articles.POST("/list", h.List)
+		publishArticles := articles.Group("/pub")
+		{
+			publishArticles.GET("/:id", h.PubDetail)
+			publishArticles.POST("/like", ginx.WrapBodyAndClaims(h.Like))
+			publishArticles.POST("/collect", ginx.WrapBodyAndClaims(h.Collect))
+			publishArticles.POST("/reward", ginx.WrapBodyAndClaims(h.Reward))
+		}
 	}
 }
 
