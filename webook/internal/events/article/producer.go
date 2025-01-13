@@ -2,7 +2,6 @@ package article
 
 import (
 	"encoding/json"
-
 	"github.com/IBM/sarama"
 )
 
@@ -29,8 +28,6 @@ type SaramaSyncProducer struct {
 func NewSaramaSyncProducer(producer sarama.SyncProducer) Producer {
 	return &SaramaSyncProducer{producer: producer}
 }
-
-var _ Producer = (*SaramaSyncProducer)(nil)
 
 func (s *SaramaSyncProducer) ProduceReadEvent(evt ReadEvent) error {
 	val, err := json.Marshal(evt)

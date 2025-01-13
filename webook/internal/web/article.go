@@ -1,113 +1,158 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
-	intrv1 "webook/api/proto/gen/intr/v1"
-	rewardv1 "webook/api/proto/gen/reward/v1"
+
 	"webook/internal/domain"
 	"webook/internal/service"
-	myJwt "webook/internal/web/jwt"
+	"webook/internal/web/jwt"
 	"webook/pkg/ginx"
 	"webook/pkg/logger"
 
+	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 )
 
 type ArticleHandler struct {
 	svc     service.ArticleService
-	intrSvc intrv1.InteractiveServiceClient
-	reward  rewardv1.RewardServiceClient
+	intrSvc service.InteractiveService
 	l       logger.Logger
 	biz     string
 }
 
-func NewArticleHandler(svc service.ArticleService, intrSvc intrv1.InteractiveServiceClient, reward rewardv1.RewardServiceClient, l logger.Logger) *ArticleHandler {
+func NewArticleHandler(l logger.Logger, svc service.ArticleService, intrSvc service.InteractiveService) *ArticleHandler {
 	return &ArticleHandler{
+		l:       l,
 		svc:     svc,
 		intrSvc: intrSvc,
-		reward:  reward,
-		l:       l,
 		biz:     "article",
 	}
 }
 
 func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
-	articles := server.Group("/articles")
-	{
-		articles.POST("/edit", ginx.WrapBodyAndClaims(h.Edit))
-		articles.POST("/publish", ginx.WrapBodyAndClaims(h.Publish))
-		articles.POST("/withdraw", ginx.WrapBodyAndClaims(h.Withdraw))
-		articles.GET("/detail/:id", h.Detail)
-		articles.POST("/list", h.List)
-		publishArticles := articles.Group("/pub")
-		{
-			publishArticles.GET("/:id", h.PubDetail)
-			publishArticles.POST("/like", ginx.WrapBodyAndClaims(h.Like))
-			publishArticles.POST("/collect", ginx.WrapBodyAndClaims(h.Collect))
-			publishArticles.POST("/reward", ginx.WrapBodyAndClaims(h.Reward))
-		}
-	}
+	g := server.Group("/articles")
+
+	//g.PUT("/", h.Edit)
+	g.POST("/edit", h.Edit)
+	g.POST("/publish", h.Publish)
+	g.POST("/withdraw", h.Withdraw)
+
+	// 创作者接口
+	g.GET("/detail/:id", h.Detail)
+	// 按照道理来说，这边就是 GET 方法
+	// /list?offset=?&limit=?
+	g.POST("/list", h.List)
+
+	pub := g.Group("/pub")
+	pub.GET("/:id", h.PubDetail)
+	// 传入一个参数，true 就是点赞, false 就是不点赞
+	pub.POST("/like", h.Like)
+	pub.POST("/collect", h.Collect)
 }
 
-func (h *ArticleHandler) Edit(ctx *gin.Context, req ArticleEditReq, userClaims myJwt.UserClaims) (ginx.Result, error) {
+// Edit 接收 Article 输入，返回一个 ID，文章的 ID
+func (h *ArticleHandler) Edit(ctx *gin.Context) {
+	type Req struct {
+		Id      int64
+		Title   string `json:"title"`
+		Content string `json:"content"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	uc := ctx.MustGet("user").(jwt.UserClaims)
 	id, err := h.svc.Save(ctx, domain.Article{
 		Id:      req.Id,
 		Title:   req.Title,
 		Content: req.Content,
 		Author: domain.Author{
-			Id: userClaims.UserId,
+			Id: uc.UserId,
 		},
 	})
 	if err != nil {
-		return ginx.Result{
-			Code: http.StatusInternalServerError,
-			Msg:  "系统错误",
-		}, err
+		ctx.JSON(http.StatusOK, ginx.Result{
+			Msg: "系统错误",
+		})
+		h.l.Error("保存文章数据失败",
+			logger.Int64("UserId", uc.UserId),
+			logger.Error(err))
+		return
 	}
-	return ginx.Result{
-		Code: http.StatusOK,
-		Msg:  "OK",
+	ctx.JSON(http.StatusOK, ginx.Result{
 		Data: id,
-	}, nil
+	})
 }
 
-func (h *ArticleHandler) Publish(ctx *gin.Context, req PublishReq, userClaims myJwt.UserClaims) (ginx.Result, error) {
+func (h *ArticleHandler) Publish(ctx *gin.Context) {
+	type Req struct {
+		Id      int64
+		Title   string `json:"title"`
+		Content string `json:"content"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	//val, ok := ctx.Get("user")
+	//if !ok {
+	//	ctx.JSON(http.StatusOK, ginx.Result{
+	//		Code: 4,
+	//		Msg:  "未登录",
+	//	})
+	//	return
+	//}
+	uc := ctx.MustGet("user").(jwt.UserClaims)
 	id, err := h.svc.Publish(ctx, domain.Article{
 		Id:      req.Id,
 		Title:   req.Title,
 		Content: req.Content,
 		Author: domain.Author{
-			Id: userClaims.UserId,
+			Id: uc.UserId,
 		},
 	})
 	if err != nil {
-		return ginx.Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Msg:  "系统错误",
-			Code: http.StatusInternalServerError,
-		}, fmt.Errorf("发表文章失败 aid %d, uid %d %w", userClaims.UserId, req.Id, err)
+			Code: 5,
+		})
+		h.l.Error("发表文章失败",
+			logger.Int64("UserId", uc.UserId),
+			logger.Error(err))
+		return
 	}
-	return ginx.Result{
-		Code: http.StatusOK,
-		Msg:  "OK",
+	ctx.JSON(http.StatusOK, ginx.Result{
 		Data: id,
-	}, nil
+	})
 }
 
-func (h *ArticleHandler) Withdraw(ctx *gin.Context, req ArticleWithdrawReq, userClaims myJwt.UserClaims) (ginx.Result, error) {
-	if err := h.svc.Withdraw(ctx, userClaims.UserId, req.Id); err != nil {
-		return ginx.Result{
-			Msg:  "系统错误",
-			Code: http.StatusInternalServerError,
-		}, err
+func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
+	type Req struct {
+		Id int64
 	}
-	return ginx.Result{
-		Code: http.StatusOK,
-		Msg:  "OK",
-	}, nil
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	uc := ctx.MustGet("user").(jwt.UserClaims)
+	err := h.svc.Withdraw(ctx, uc.UserId, req.Id)
+	if err != nil {
+		ctx.JSON(http.StatusOK, ginx.Result{
+			Msg:  "系统错误",
+			Code: 5,
+		})
+		h.l.Error("撤回文章失败",
+			logger.Int64("UserId", uc.UserId),
+			logger.Int64("aid", req.Id),
+			logger.Error(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, ginx.Result{
+		Msg: "OK",
+	})
 }
 
 func (h *ArticleHandler) List(ctx *gin.Context) {
@@ -115,31 +160,36 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 	if err := ctx.Bind(&page); err != nil {
 		return
 	}
-	userClaims := ctx.MustGet("user").(myJwt.UserClaims)
-	articles, err := h.svc.GetByAuthor(ctx, userClaims.UserId, page.Limit, page.Offset)
+	// 我要不要检测一下？
+	uc := ctx.MustGet("user").(jwt.UserClaims)
+	arts, err := h.svc.GetByAuthor(ctx, uc.UserId, page.Offset, page.Limit)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: 5,
 			Msg:  "系统错误",
 		})
-		h.l.Error("查找文章列表失败", logger.Error(err), logger.Int("limit", page.Limit), logger.Int("offset", page.Offset), logger.Int64("uid", userClaims.UserId))
+		h.l.Error("查找文章列表失败",
+			logger.Error(err),
+			logger.Int("offset", page.Offset),
+			logger.Int("limit", page.Limit),
+			logger.Int64("UserId", uc.UserId))
 		return
 	}
-	res := make([]ArticleVo, 0, len(articles))
-	for _, article := range articles {
-		res = append(res, ArticleVo{
-			Id:         article.Id,
-			Title:      article.Title,
-			Abstract:   article.Abstract(),
-			AuthorId:   article.Author.Id,
-			Status:     article.Status.ToUint8(),
-			CreateTime: article.CreateTime.Format(time.DateTime),
-			UpdateTime: article.UpdateTime.Format(time.DateTime),
-		})
-	}
 	ctx.JSON(http.StatusOK, ginx.Result{
-		Code: http.StatusOK,
-		Data: res,
+		Data: slice.Map[domain.Article, ArticleVo](arts, func(idx int, src domain.Article) ArticleVo {
+			return ArticleVo{
+				Id:       src.Id,
+				Title:    src.Title,
+				Abstract: src.Abstract(),
+
+				//Content:  src.Content,
+				AuthorId: src.Author.Id,
+				// 列表，你不需要
+				Status:     src.Status.ToUint8(),
+				CreateTime: src.CreateTime.Format(time.DateTime),
+				UpdateTime: src.UpdateTime.Format(time.DateTime),
+			}
+		}),
 	})
 }
 
@@ -148,42 +198,51 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
-			Code: http.StatusBadRequest,
-			Msg:  "参数错误",
+			Msg:  "id 参数错误",
+			Code: 4,
 		})
-		h.l.Warn("查询文章失败, id 格式错误", logger.String("id", idStr), logger.Error(err))
+		h.l.Warn("查询文章失败，id 格式不对",
+			logger.String("id", idStr),
+			logger.Error(err))
 		return
 	}
-	articles, err := h.svc.GetById(ctx, id)
+	art, err := h.svc.GetById(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
-			Code: http.StatusInternalServerError,
 			Msg:  "系统错误",
+			Code: 5,
 		})
-		h.l.Error("查询文章失败", logger.Int64("id", id), logger.Error(err))
+		h.l.Error("查询文章失败",
+			logger.Int64("id", id),
+			logger.Error(err))
 		return
 	}
-	userClaims := ctx.MustGet("user").(myJwt.UserClaims)
-	if articles.Author.Id != userClaims.UserId {
+	uc := ctx.MustGet("user").(jwt.UserClaims)
+	if art.Author.Id != uc.UserId {
+		// 有人在搞鬼
 		ctx.JSON(http.StatusOK, ginx.Result{
-			Code: http.StatusForbidden,
-			Msg:  "无权限",
+			Msg:  "系统错误",
+			Code: 5,
 		})
-		h.l.Error("非法查询文章", logger.Int64("id", id), logger.Int64("uid", userClaims.UserId))
+		h.l.Error("非法查询文章",
+			logger.Int64("id", id),
+			logger.Int64("UserId", uc.UserId))
 		return
 	}
-	ctx.JSON(http.StatusOK, ginx.Result{
-		Code: http.StatusOK,
-		Data: ArticleVo{
-			Id:         articles.Id,
-			Title:      articles.Title,
-			Content:    articles.Content,
-			AuthorId:   articles.Author.Id,
-			Status:     articles.Status.ToUint8(),
-			CreateTime: articles.CreateTime.Format(time.DateTime),
-			UpdateTime: articles.UpdateTime.Format(time.DateTime),
-		},
-	})
+
+	vo := ArticleVo{
+		Id:    art.Id,
+		Title: art.Title,
+		//Abstract: art.Abstract(),
+
+		Content:  art.Content,
+		AuthorId: art.Author.Id,
+		// 列表，你不需要
+		Status:     art.Status.ToUint8(),
+		CreateTime: art.CreateTime.Format(time.DateTime),
+		UpdateTime: art.UpdateTime.Format(time.DateTime),
+	}
+	ctx.JSON(http.StatusOK, ginx.Result{Data: vo})
 }
 
 func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
@@ -191,138 +250,138 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
-			Code: http.StatusBadRequest,
-			Msg:  "参数错误",
+			Msg:  "id 参数错误",
+			Code: 4,
 		})
-		h.l.Warn("查询文章失败, id 格式错误", logger.String("id", idStr), logger.Error(err))
+		h.l.Warn("查询文章失败，id 格式不对",
+			logger.String("id", idStr),
+			logger.Error(err))
 		return
 	}
 
 	var (
-		eg      errgroup.Group
-		article domain.Article
-		intr    *intrv1.GetResponse
+		eg   errgroup.Group
+		art  domain.Article
+		intr domain.Interactive
 	)
 
-	userClaims := ctx.MustGet("user").(myJwt.UserClaims)
+	uc := ctx.MustGet("user").(jwt.UserClaims)
 	eg.Go(func() error {
 		var er error
-		article, er = h.svc.GetPubById(ctx, id, userClaims.UserId)
+		art, er = h.svc.GetPubById(ctx, id, uc.UserId)
 		return er
 	})
 	eg.Go(func() error {
 		var er error
-		intr, er = h.intrSvc.Get(ctx, &intrv1.GetRequest{
-			Biz:   h.biz,
-			BizId: id,
-			Uid:   userClaims.UserId,
-		})
+		intr, er = h.intrSvc.Get(ctx, h.biz, id, uc.UserId)
 		return er
 	})
+
+	// 等待结果
 	err = eg.Wait()
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
 			Msg:  "系统错误",
-			Code: http.StatusInternalServerError,
+			Code: 5,
 		})
-		h.l.Error("查询文章失败，系统错误", logger.Int64("aid", id), logger.Int64("uid", userClaims.UserId), logger.Error(err))
+		h.l.Error("查询文章失败，系统错误",
+			logger.Int64("aid", id),
+			logger.Int64("UserId", uc.UserId),
+			logger.Error(err))
 		return
 	}
 
+	//go func() {
+	// 1. 如果你想摆脱原本主链路的超时控制，你就创建一个新的
+	// 2. 如果你不想，你就用 ctx
+	//newCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+	//defer cancel()
+	//er := h.intrSvc.IncrReadCnt(newCtx, h.biz, art.Id)
+	//if er != nil {
+	//	h.l.Error("更新阅读数失败",
+	//		logger.Int64("aid", art.Id),
+	//		logger.Error(err))
+	//}
+	//}()
+
 	ctx.JSON(http.StatusOK, ginx.Result{
-		Code: http.StatusOK,
-		Msg:  "OK",
 		Data: ArticleVo{
-			Id:         article.Id,
-			Title:      article.Title,
-			Content:    article.Content,
-			AuthorId:   article.Author.Id,
-			AuthorName: article.Author.Name,
-			ReadCnt:    intr.Intr.ReadCnt,
-			CollectCnt: intr.Intr.CollectCnt,
-			LikeCnt:    intr.Intr.LikeCnt,
-			Collected:  intr.Intr.Collected,
-			Status:     article.Status.ToUint8(),
-			CreateTime: article.CreateTime.Format(time.DateTime),
-			UpdateTime: article.UpdateTime.Format(time.DateTime),
+			Id:    art.Id,
+			Title: art.Title,
+
+			Content:    art.Content,
+			AuthorId:   art.Author.Id,
+			AuthorName: art.Author.Name,
+			ReadCnt:    intr.ReadCnt,
+			CollectCnt: intr.CollectCnt,
+			LikeCnt:    intr.LikeCnt,
+			Liked:      intr.Liked,
+			Collected:  intr.Collected,
+
+			Status:     art.Status.ToUint8(),
+			CreateTime: art.CreateTime.Format(time.DateTime),
+			UpdateTime: art.UpdateTime.Format(time.DateTime),
 		},
 	})
 }
 
-func (h *ArticleHandler) Like(ctx *gin.Context, req ArticleLikeReq, userClaims myJwt.UserClaims) (ginx.Result, error) {
+func (h *ArticleHandler) Like(c *gin.Context) {
+	type Req struct {
+		Id int64 `json:"id"`
+		// true 是点赞，false 是不点赞
+		Like bool `json:"like"`
+	}
+	var req Req
+	if err := c.Bind(&req); err != nil {
+		return
+	}
+	uc := c.MustGet("user").(jwt.UserClaims)
 	var err error
 	if req.Like {
-		_, err = h.intrSvc.Like(ctx, &intrv1.LikeRequest{
-			Biz:   h.biz,
-			BizId: req.Id,
-			Uid:   userClaims.UserId,
-		})
+		// 点赞
+		err = h.intrSvc.Like(c, h.biz, req.Id, uc.UserId)
 	} else {
-		_, err = h.intrSvc.CancelLike(ctx, &intrv1.CancelLikeRequest{
-			Biz:   h.biz,
-			BizId: req.Id,
-			Uid:   userClaims.UserId,
+		// 取消点赞
+		err = h.intrSvc.CancelLike(c, h.biz, req.Id, uc.UserId)
+	}
+	if err != nil {
+		c.JSON(http.StatusOK, ginx.Result{
+			Code: 5, Msg: "系统错误",
 		})
+		h.l.Error("点赞/取消点赞失败",
+			logger.Error(err),
+			logger.Int64("UserId", uc.UserId),
+			logger.Int64("aid", req.Id))
+		return
 	}
-	if err != nil {
-		return ginx.Result{
-			Code: http.StatusInternalServerError,
-			Msg:  "系统错误",
-		}, err
-	}
-	return ginx.Result{
-		Code: http.StatusOK,
-		Msg:  "OK",
-	}, nil
+	c.JSON(http.StatusOK, ginx.Result{
+		Msg: "OK",
+	})
 }
 
-func (h *ArticleHandler) Collect(ctx *gin.Context, req ArticleCollectReq, userClaims myJwt.UserClaims) (ginx.Result, error) {
-	_, err := h.intrSvc.Collect(ctx, &intrv1.CollectRequest{
-		Biz:   h.biz,
-		BizId: req.Id,
-		Uid:   userClaims.UserId,
-		Cid:   req.Cid,
-	})
-	if err != nil {
-		return ginx.Result{
-			Code: http.StatusInternalServerError,
-			Msg:  "系统错误",
-		}, err
+func (h *ArticleHandler) Collect(ctx *gin.Context) {
+	type Req struct {
+		Id  int64 `json:"id"`
+		Cid int64 `json:"cid"`
 	}
-	return ginx.Result{
-		Code: http.StatusOK,
-		Msg:  "OK",
-	}, nil
-}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	uc := ctx.MustGet("user").(jwt.UserClaims)
 
-func (h *ArticleHandler) Reward(ctx *gin.Context, req ArticleRewardReq, userClaims myJwt.UserClaims) (ginx.Result, error) {
-	resp, err := h.svc.GetPubById(ctx, req.Id, userClaims.UserId)
+	err := h.intrSvc.Collect(ctx, h.biz, req.Id, req.Cid, uc.UserId)
 	if err != nil {
-		return ginx.Result{
-			Code: http.StatusInternalServerError,
-			Msg:  "系统错误",
-		}, err
+		ctx.JSON(http.StatusOK, ginx.Result{
+			Code: 5, Msg: "系统错误",
+		})
+		h.l.Error("收藏失败",
+			logger.Error(err),
+			logger.Int64("UserId", uc.UserId),
+			logger.Int64("aid", req.Id))
+		return
 	}
-	res, err := h.reward.PreReward(ctx, &rewardv1.PreRewardRequest{
-		Biz:       h.biz,
-		BizId:     resp.Id,
-		BizName:   resp.Title,
-		TargetUid: resp.Author.Id,
-		Uid:       userClaims.UserId,
-		Amt:       req.Amt,
+	ctx.JSON(http.StatusOK, ginx.Result{
+		Msg: "OK",
 	})
-	if err != nil {
-		return ginx.Result{
-			Code: http.StatusInternalServerError,
-			Msg:  "系统错误",
-		}, err
-	}
-	return ginx.Result{
-		Code: http.StatusOK,
-		Msg:  "OK",
-		Data: map[string]interface{}{
-			"codeURL": res.CodeUrl,
-			"rid":     res.Rid,
-		},
-	}, nil
 }

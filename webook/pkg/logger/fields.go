@@ -14,8 +14,12 @@ func SafeString(key, val string) Field {
 	}
 }
 
-func Any(key string, val interface{}) Field {
+func Any[T any](key string, val T) Field {
 	return Field{Key: key, Val: val}
+}
+
+func Slice[T any](key string, slice []T) Field {
+	return Field{Key: key, Val: slice}
 }
 
 func String(key, val string) Field {

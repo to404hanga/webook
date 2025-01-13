@@ -11,16 +11,26 @@ import (
 )
 
 func InitDB(l logger.Logger) *gorm.DB {
-	db, err := gorm.Open(mysql.Open(viper.GetString("db.dsn")), &gorm.Config{
-		Logger: glogger.New(gormLoggerFunc(l.Debug), glogger.Config{
-			SlowThreshold: 0, // 关闭慢查询
+	type Config struct {
+		DSN string `yaml:"dsn"`
+	}
+	var cfg Config = Config{
+		DSN: "root:root@tcp(localhost:3316)/webook",
+	}
+	err := viper.UnmarshalKey("db", &cfg)
+	if err != nil {
+		panic(err)
+	}
+	db, err := gorm.Open(mysql.Open(cfg.DSN), &gorm.Config{
+		Logger: glogger.New(goormLoggerFunc(l.Debug), glogger.Config{
+			// 慢查询
+			SlowThreshold: 0,
 			LogLevel:      glogger.Info,
 		}),
 	})
 	if err != nil {
 		panic(err)
 	}
-
 	err = dao.InitTables(db)
 	if err != nil {
 		panic(err)
@@ -28,8 +38,8 @@ func InitDB(l logger.Logger) *gorm.DB {
 	return db
 }
 
-type gormLoggerFunc func(msg string, fields ...logger.Field)
+type goormLoggerFunc func(msg string, fields ...logger.Field)
 
-func (g gormLoggerFunc) Printf(msg string, val ...interface{}) {
-	g(msg, logger.Any("args", val))
+func (g goormLoggerFunc) Printf(s string, i ...interface{}) {
+	g(s, logger.Field{Key: "args", Val: i})
 }

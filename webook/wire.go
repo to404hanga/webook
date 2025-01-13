@@ -3,40 +3,67 @@
 package main
 
 import (
+	"webook/internal/events/article"
 	"webook/internal/repository"
 	"webook/internal/repository/cache"
 	"webook/internal/repository/dao"
+	articleDao "webook/internal/repository/dao/article"
 	"webook/internal/service"
 	"webook/internal/web"
-	myJwt "webook/internal/web/jwt"
+	ijwt "webook/internal/web/jwt"
 	"webook/ioc"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
-func InitWebServer() *gin.Engine {
+var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO,
+	cache.NewInteractiveRedisCache,
+	repository.NewCachedInteractiveRepository,
+	service.NewInteractiveService,
+)
+
+func InitWebServer() *App {
 	wire.Build(
+		// 第三方依赖
 		ioc.InitRedis, ioc.InitDB,
+		ioc.InitLogger,
+		ioc.InitSaramaClient,
+		ioc.InitSyncProducer,
+		// DAO 部分
 		dao.NewUserDAO,
+		articleDao.NewGormArticleDAO,
 
+		interactiveSvcSet,
+
+		article.NewSaramaSyncProducer,
+		article.NewInteractiveReadEventConsumer,
+		ioc.InitConsumers,
+
+		// cache 部分
 		cache.NewCodeCache, cache.NewUserCache,
+		cache.NewArticleRedisCache,
 
+		// repository 部分
 		repository.NewUserRepository,
 		repository.NewCodeRepository,
+		repository.NewArticleRepository,
 
-		ioc.InitLogger,
-
+		// Service 部分
 		ioc.InitSMSService,
 		ioc.InitWechatService,
 		service.NewUserService,
 		service.NewCodeService,
+		service.NewArticleService,
 
+		// handler 部分
 		web.NewUserHandler,
+		web.NewArticleHandler,
+		ijwt.NewRedisJWTHandler,
 		web.NewOAuth2WechatHandler,
-		myJwt.NewRedisJWTHandler,
 		ioc.InitGinMiddlewares,
 		ioc.InitWebServer,
+
+		wire.Struct(new(App), "*"),
 	)
-	return gin.Default()
+	return new(App)
 }

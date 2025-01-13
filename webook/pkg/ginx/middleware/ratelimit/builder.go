@@ -28,7 +28,7 @@ func (b *Builder) Prefix(prefix string) *Builder {
 	return b
 }
 
-func (b *Builder) Builder() gin.HandlerFunc {
+func (b *Builder) Build() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if ctx.GetHeader("x-stress") == "true" {
 			newCtx := context.WithValue(ctx, "x-stress", true)

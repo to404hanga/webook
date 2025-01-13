@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 	"webook/internal/web"
+	ijwt "webook/internal/web/jwt"
 	"webook/internal/web/middleware"
 	"webook/pkg/ginx/middleware/ratelimit"
 	"webook/pkg/limiter"
@@ -15,35 +16,57 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func InitWebServer(middlewares []gin.HandlerFunc, userHandler *web.UserHandler, wechatHandler *web.OAuth2WechatHandler) *gin.Engine {
+//func InitWebServerV1(mdls []gin.HandlerFunc, hdls []web.Handler) *gin.Engine {
+//	server := gin.Default()
+//	server.Use(mdls...)
+//	for _, hdl := range hdls {
+//		hdl.RegisterRoutes(server)
+//	}
+//	//userHdl.RegisterRoutes(server)
+//	return server
+//}
+
+func InitWebServer(mdls []gin.HandlerFunc,
+	userHdl *web.UserHandler,
+	artHdl *web.ArticleHandler,
+	wechatHdl *web.OAuth2WechatHandler) *gin.Engine {
 	server := gin.Default()
-	server.Use(middlewares...)
-	userHandler.RegisterRoutes(server)
-	wechatHandler.RegisterRoutes(server)
+	server.Use(mdls...)
+	userHdl.RegisterRoutes(server)
+	wechatHdl.RegisterRoutes(server)
+	artHdl.RegisterRoutes(server)
 	return server
 }
 
-func InitGinMiddlewares(redisClient redis.Cmdable, l logger.Logger) []gin.HandlerFunc {
+func InitGinMiddlewares(redisClient redis.Cmdable,
+	hdl ijwt.Handler, l logger.Logger) []gin.HandlerFunc {
 	return []gin.HandlerFunc{
 		cors.New(cors.Config{
+			//AllowAllOrigins: true,
+			//AllowOrigins:     []string{"http://localhost:3000"},
 			AllowCredentials: true,
-			AllowHeaders:     []string{"Content-Type", "Authorization"},
-			ExposeHeaders:    []string{"X-Jwt-Token", "X-Refresh-Token"},
+
+			AllowHeaders: []string{"Content-Type", "Authorization"},
+			// 这个是允许前端访问你的后端响应中带的头部
+			ExposeHeaders: []string{"x-jwt-token", "x-refresh-token"},
+			//AllowHeaders: []string{"content-type"},
+			//AllowMethods: []string{"POST"},
 			AllowOriginFunc: func(origin string) bool {
 				if strings.HasPrefix(origin, "http://localhost") {
+					//if strings.Contains(origin, "localhost") {
 					return true
 				}
-				return strings.Contains(origin, "192.168.31.102")
+				return strings.Contains(origin, "your_company.com")
 			},
 			MaxAge: 12 * time.Hour,
 		}),
-
-		ratelimit.NewBuilder(limiter.NewRedisSlidingWindowLimiter(redisClient, time.Second, 1000)).Builder(),
-
-		middleware.NewLogMiddlewareBuilder(func(ctx context.Context, accessLog middleware.AccessLog) {
-			l.Debug("", logger.Any("req", accessLog))
-		}).AllowReqBody().AllowRespBody().DefaultMaxPathLength().DefaultMaxBodyLength().Build(),
-
-		(&middleware.LoginJWTMiddlewareBuilder{}).CheckLogin(),
+		func(ctx *gin.Context) {
+			println("这是我的 Middleware")
+		},
+		ratelimit.NewBuilder(limiter.NewRedisSlidingWindowLimiter(redisClient, time.Second, 1000)).Build(),
+		middleware.NewLogMiddlewareBuilder(func(ctx context.Context, al middleware.AccessLog) {
+			l.Debug("", logger.Field{Key: "req", Val: al})
+		}).AllowReqBody().AllowRespBody().Build(),
+		middleware.NewLoginJWTMiddlewareBuilder(hdl).CheckLogin(),
 	}
 }

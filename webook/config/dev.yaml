@@ -1,8 +1,12 @@
 test:
-  key: "value"
+  key: value1234
 
 redis:
   addr: "localhost:6379"
 
 db:
-  dsn: "root:123456@tcp(localhost:3307)/webook"
+  dsn: "root:root@tcp(localhost:3307)/webook"
+
+kafka:
+  addr:
+    - "localhost:9094"
