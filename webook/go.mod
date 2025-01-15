@@ -32,8 +32,11 @@ require (
 	github.com/tj/assert v0.0.3
 	go.etcd.io/etcd/client/v3 v3.5.15
 	go.mongodb.org/mongo-driver v1.17.2
-	go.opentelemetry.io/otel v1.32.0
-	go.opentelemetry.io/otel/trace v1.32.0
+	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.58.0
+	go.opentelemetry.io/otel v1.33.0
+	go.opentelemetry.io/otel/exporters/zipkin v1.33.0
+	go.opentelemetry.io/otel/sdk v1.33.0
+	go.opentelemetry.io/otel/trace v1.33.0
 	go.uber.org/atomic v1.10.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.32.0
@@ -42,6 +45,8 @@ require (
 	google.golang.org/protobuf v1.36.2
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.12
+	gorm.io/plugin/opentelemetry v0.1.11
+	gorm.io/plugin/prometheus v0.1.0
 )
 
 require (
@@ -120,6 +125,7 @@ require (
 	github.com/nats-io/nats.go v1.36.0 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
+	github.com/openzipkin/zipkin-go v0.4.3 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -144,11 +150,10 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.15 // indirect
 	go.etcd.io/etcd/client/v2 v2.305.15 // indirect
 	go.opencensus.io v0.24.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
-	go.opentelemetry.io/otel/metric v1.32.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.32.0 // indirect
+	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect

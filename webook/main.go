@@ -1,12 +1,15 @@
 package main
 
 import (
-	"bytes"
+	"context"
 	"log"
 	"net/http"
+	"time"
+	"webook/ioc"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
@@ -14,9 +17,19 @@ import (
 )
 
 func main() {
-	initViperV1()
+	initViper()
 	initLogger()
+	initViperWatch()
+
+	tpCancel := ioc.InitOTEL()
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		tpCancel(ctx)
+	}()
+
 	app := InitWebServer()
+	initPrometheus()
 	for _, c := range app.consumers {
 		err := c.Start()
 		if err != nil {
@@ -27,11 +40,14 @@ func main() {
 	server.GET("/hello", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "hello，启动成功了！")
 	})
-	// 作业：改成 8081
-	//addr := viper.Get("addr")
-	//server.Run(":8081")
-	//server.Run(addr)
 	server.Run(":8080")
+}
+
+func initPrometheus() {
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":8081", nil)
+	}()
 }
 
 func initLogger() {
@@ -42,23 +58,9 @@ func initLogger() {
 	zap.ReplaceGlobals(logger)
 }
 
-func initViper() {
-	viper.SetConfigName("dev")
-	viper.SetConfigType("yaml")
-	// 当前工作目录的 config 子目录
-	viper.AddConfigPath("config")
-	// 读取配置
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-	val := viper.Get("test.key")
-	log.Println(val)
-}
-
 func initViperWatch() {
 	cfile := pflag.String("config",
-		"config/config.yaml", "配置文件路径")
+		"config/dev.yaml", "配置文件路径")
 	// 这一步之后，cfile 里面才有值
 	pflag.Parse()
 	//viper.Set("db.dsn", "localhost:3306")
@@ -78,9 +80,9 @@ func initViperWatch() {
 	log.Println(val)
 }
 
-func initViperV1() {
+func initViper() {
 	cfile := pflag.String("config",
-		"config/config.yaml", "配置文件路径")
+		"config/dev.yaml", "配置文件路径")
 	// 这一步之后，cfile 里面才有值
 	pflag.Parse()
 	//viper.Set("db.dsn", "localhost:3306")
@@ -94,24 +96,6 @@ func initViperV1() {
 	}
 	val := viper.Get("test.key")
 	log.Println(val)
-}
-
-func initViperV2() {
-	cfg := `
-test:
-  key: value1
-
-redis:
-  addr: "localhost:6379"
-
-db:
-  dsn: "root:root@tcp(localhost:3307)/webook"
-`
-	viper.SetConfigType("yaml")
-	err := viper.ReadConfig(bytes.NewReader([]byte(cfg)))
-	if err != nil {
-		panic(err)
-	}
 }
 
 func initViperRemote() {

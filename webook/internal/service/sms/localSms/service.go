@@ -1,4 +1,4 @@
-package localSms
+package localsms
 
 import (
 	"context"

@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"webook/internal/errs"
 	"webook/internal/service"
 	"webook/internal/service/oauth2/wechat"
 	myJwt "webook/internal/web/jwt"
@@ -43,11 +44,11 @@ func (h *OAuth2WechatHandler) RegisterRoutes(server *gin.Engine) {
 
 func (h *OAuth2WechatHandler) Auth2URL(ctx *gin.Context) {
 	state := uuid.New()
-	value, err := h.svc.Auth2URL(ctx, state)
+	value, err := h.svc.Auth2URL(ctx.Request.Context(), state)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
 			Msg:  "构造跳转URL失败",
-			Code: 500,
+			Code: errs.WechatInternalServerError,
 		})
 		return
 	}
@@ -55,7 +56,7 @@ func (h *OAuth2WechatHandler) Auth2URL(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
 			Msg:  "系统错误",
-			Code: http.StatusInternalServerError,
+			Code: errs.WechatInternalServerError,
 		})
 	}
 	ctx.JSON(http.StatusOK, ginx.Result{
@@ -68,24 +69,24 @@ func (h *OAuth2WechatHandler) Callback(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
 			Msg:  "非法请求",
-			Code: http.StatusBadRequest,
+			Code: errs.WechatInvalidInput,
 		})
 		return
 	}
 	code := ctx.Query("code")
-	wechatInfo, err := h.svc.VerifyCode(ctx, code)
+	wechatInfo, err := h.svc.VerifyCode(ctx.Request.Context(), code)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
 			Msg:  "授权失败",
-			Code: http.StatusUnauthorized,
+			Code: errs.WechatAuthorizeFailed,
 		})
 		return
 	}
-	user, err := h.userSvc.FindOrCreateByWechat(ctx, wechatInfo)
+	user, err := h.userSvc.FindOrCreateByWechat(ctx.Request.Context(), wechatInfo)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
 			Msg:  "系统错误",
-			Code: http.StatusInternalServerError,
+			Code: errs.WechatInternalServerError,
 		})
 		return
 	}

@@ -8,23 +8,15 @@ import (
 	ijwt "webook/internal/web/jwt"
 	"webook/internal/web/middleware"
 	"webook/pkg/ginx/middleware/ratelimit"
+	"webook/pkg/ginx/prometheus"
 	"webook/pkg/limiter"
 	"webook/pkg/logger"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
-
-//func InitWebServerV1(mdls []gin.HandlerFunc, hdls []web.Handler) *gin.Engine {
-//	server := gin.Default()
-//	server.Use(mdls...)
-//	for _, hdl := range hdls {
-//		hdl.RegisterRoutes(server)
-//	}
-//	//userHdl.RegisterRoutes(server)
-//	return server
-//}
 
 func InitWebServer(mdls []gin.HandlerFunc,
 	userHdl *web.UserHandler,
@@ -38,8 +30,13 @@ func InitWebServer(mdls []gin.HandlerFunc,
 	return server
 }
 
-func InitGinMiddlewares(redisClient redis.Cmdable,
-	hdl ijwt.Handler, l logger.Logger) []gin.HandlerFunc {
+func InitGinMiddlewares(redisClient redis.Cmdable, hdl ijwt.Handler, l logger.Logger) []gin.HandlerFunc {
+	pb := prometheus.Builder{
+		Namespace: "to404hanga_lsh",
+		Subsystem: "webook",
+		Name:      "gin_http",
+		Help:      "统计 gin 的 http 接口数据",
+	}
 	return []gin.HandlerFunc{
 		cors.New(cors.Config{
 			//AllowAllOrigins: true,
@@ -60,9 +57,9 @@ func InitGinMiddlewares(redisClient redis.Cmdable,
 			},
 			MaxAge: 12 * time.Hour,
 		}),
-		func(ctx *gin.Context) {
-			println("这是我的 Middleware")
-		},
+		pb.BuildResponseTime(),
+		pb.BuildActiveRequest(),
+		otelgin.Middleware("webook"),
 		ratelimit.NewBuilder(limiter.NewRedisSlidingWindowLimiter(redisClient, time.Second, 1000)).Build(),
 		middleware.NewLogMiddlewareBuilder(func(ctx context.Context, al middleware.AccessLog) {
 			l.Debug("", logger.Field{Key: "req", Val: al})

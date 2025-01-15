@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 	"webook/internal/domain"
+	"webook/internal/errs"
 	"webook/internal/service"
 	myJwt "webook/internal/web/jwt"
 	"webook/pkg/ginx"
@@ -63,11 +64,11 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 func (h *UserHandler) SendSMSLoginCode(ctx *gin.Context, req SendSMSCodeReq) (ginx.Result, error) {
 	if req.Phone == "" {
 		return ginx.Result{
-			Code: http.StatusBadRequest,
+			Code: errs.UserInvalidInput,
 			Msg:  "请输入手机号码",
 		}, nil
 	}
-	err := h.codeSvc.Send(ctx, bizLogin, req.Phone)
+	err := h.codeSvc.Send(ctx.Request.Context(), bizLogin, req.Phone)
 	switch err {
 	case nil:
 		return ginx.Result{
@@ -76,41 +77,41 @@ func (h *UserHandler) SendSMSLoginCode(ctx *gin.Context, req SendSMSCodeReq) (gi
 		}, nil
 	case service.ErrCodeSendTooMany:
 		return ginx.Result{
-			Code: http.StatusTooManyRequests,
+			Code: errs.UserSmsSendTooMany,
 			Msg:  "短信发送太频繁，请稍后再试",
 		}, nil
 	default:
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	}
 }
 
 func (h *UserHandler) LoginSMS(ctx *gin.Context, req LoginSMSReq) (ginx.Result, error) {
-	ok, err := h.codeSvc.Verify(ctx, bizLogin, req.Phone, req.Code)
+	ok, err := h.codeSvc.Verify(ctx.Request.Context(), bizLogin, req.Phone, req.Code)
 	if err != nil {
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	}
 	if !ok {
 		return ginx.Result{
-			Code: http.StatusBadRequest,
+			Code: errs.UserInvalidInput,
 			Msg:  "验证码错误，请重新输入",
 		}, nil
 	}
-	user, err := h.svc.FindOrCreate(ctx, req.Phone)
+	user, err := h.svc.FindOrCreate(ctx.Request.Context(), req.Phone)
 	if err != nil {
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	}
 	if err = h.SetLoginToken(ctx, user.Id); err != nil {
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	}
@@ -123,36 +124,36 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context, req LoginSMSReq) (ginx.Result, 
 func (h *UserHandler) SignUp(ctx *gin.Context, req SignUpReq) (ginx.Result, error) {
 	if isEmail, err := h.emailRexExp.MatchString(req.Email); err != nil {
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	} else if !isEmail {
 		return ginx.Result{
-			Code: http.StatusBadRequest,
+			Code: errs.UserInvalidInput,
 			Msg:  "非法邮箱格式",
 		}, nil
 	}
 
 	if req.Password != req.ConfirmPassword {
 		return ginx.Result{
-			Code: http.StatusBadRequest,
+			Code: errs.UserInvalidInput,
 			Msg:  "两次输入的密码不一致",
 		}, nil
 	}
 
 	if isPassword, err := h.passwordRexExp.MatchString(req.Password); err != nil {
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	} else if !isPassword {
 		return ginx.Result{
-			Code: http.StatusBadRequest,
+			Code: errs.UserInvalidInput,
 			Msg:  "密码必须包含字母、数字、特殊字符，并且不少于八位",
 		}, nil
 	}
 
-	err := h.svc.SignUp(ctx, domain.User{
+	err := h.svc.SignUp(ctx.Request.Context(), domain.User{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -165,24 +166,24 @@ func (h *UserHandler) SignUp(ctx *gin.Context, req SignUpReq) (ginx.Result, erro
 		}, nil
 	case service.ErrDuplicateUser:
 		return ginx.Result{
-			Code: http.StatusConflict,
+			Code: errs.UserDuplicateEmail,
 			Msg:  "该邮箱已被注册",
 		}, nil
 	default:
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	}
 }
 
 func (h *UserHandler) Login(ctx *gin.Context, req LoginJWTReq) (ginx.Result, error) {
-	user, err := h.svc.Login(ctx, req.Email, req.Password)
+	user, err := h.svc.Login(ctx.Request.Context(), req.Email, req.Password)
 	switch err {
 	case nil:
 		if err = h.SetLoginToken(ctx, user.Id); err != nil {
 			return ginx.Result{
-				Code: http.StatusInternalServerError,
+				Code: errs.UserInternalServerError,
 				Msg:  "系统错误",
 			}, err
 		}
@@ -192,12 +193,12 @@ func (h *UserHandler) Login(ctx *gin.Context, req LoginJWTReq) (ginx.Result, err
 		}, nil
 	case service.ErrInvalidUserOrPassword:
 		return ginx.Result{
-			Code: http.StatusBadRequest,
+			Code: errs.UserInvalidInput,
 			Msg:  "用户名或密码错误",
 		}, nil
 	default:
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	}
@@ -207,7 +208,7 @@ func (h *UserHandler) LogoutJWT(ctx *gin.Context) {
 	err := h.ClearToken(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		})
 		return
@@ -222,18 +223,18 @@ func (h *UserHandler) Edit(ctx *gin.Context, req UserEditReq, userClaims myJwt.U
 	birthday, err := time.Parse(time.DateOnly, req.Birthday)
 	if err != nil {
 		return ginx.Result{
-			Code: http.StatusBadRequest,
+			Code: errs.UserInvalidInput,
 			Msg:  "非法的生日格式",
 		}, err
 	}
-	if err = h.svc.EditNonSensitive(ctx, domain.User{
+	if err = h.svc.EditNonSensitive(ctx.Request.Context(), domain.User{
 		Id:       userClaims.UserId,
 		Nickname: req.Nickname,
 		Birthday: birthday,
 		AboutMe:  req.AboutMe,
 	}); err != nil {
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	}
@@ -244,10 +245,10 @@ func (h *UserHandler) Edit(ctx *gin.Context, req UserEditReq, userClaims myJwt.U
 }
 
 func (h *UserHandler) Profile(ctx *gin.Context, userClaims myJwt.UserClaims) (ginx.Result, error) {
-	user, err := h.svc.FindById(ctx, userClaims.UserId)
+	user, err := h.svc.FindById(ctx.Request.Context(), userClaims.UserId)
 	if err != nil {
 		return ginx.Result{
-			Code: http.StatusInternalServerError,
+			Code: errs.UserInternalServerError,
 			Msg:  "系统错误",
 		}, err
 	}
