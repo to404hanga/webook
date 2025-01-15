@@ -20,6 +20,7 @@ const fieldReadCnt = "read_cnt"
 const fieldLikeCnt = "like_cnt"
 const fieldCollectCnt = "collect_cnt"
 
+//go:generate mockgen -source=./interactive.go -package=cachemocks -destination=./mocks/interactive.mock.go InteractiveCache
 type InteractiveCache interface {
 	IncrReadCntIfPresent(ctx context.Context, biz string, bizId int64) error
 	IncrLikeCntIfPresent(ctx context.Context, biz string, id int64) error

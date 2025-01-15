@@ -6,6 +6,7 @@ import (
 	"webook/internal/domain"
 )
 
+//go:generate mockgen -source=./types.go -package=daomocks -destination=../mocks/article.mock.go ArticleDAO
 type ArticleDAO interface {
 	UpdateById(ctx context.Context, article Article) error
 	Insert(ctx context.Context, article Article) (int64, error)

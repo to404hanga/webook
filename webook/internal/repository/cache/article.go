@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+//go:generate mockgen -source=./article.go -package=cachemocks -destination=./mocks/article.mock.go ArticleCache
 type ArticleCache interface {
 	DelFirstPage(ctx context.Context, userId int64) error
 	DelPub(ctx context.Context, id int64) error

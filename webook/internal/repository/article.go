@@ -9,6 +9,7 @@ import (
 	"webook/pkg/logger"
 )
 
+//go:generate mockgen -source=./article.go -package=repomocks -destination=./mocks/article.mock.go ArticleRepository
 type ArticleRepository interface {
 	Update(ctx context.Context, article domain.Article) error
 	Create(ctx context.Context, article domain.Article) (int64, error)

@@ -9,6 +9,7 @@ import (
 	"webook/pkg/logger"
 )
 
+//go:generate mockgen -source=./article.go -package=svcmocks -destination=./mocks/article.mock.go ArticleService
 type ArticleService interface {
 	ListPub(ctx context.Context, start time.Time, limit, offset int) ([]domain.Article, error)
 	GetPubById(ctx context.Context, id, userId int64) (domain.Article, error)

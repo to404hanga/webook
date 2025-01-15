@@ -15,6 +15,7 @@ var (
 	ErrInvalidUserOrPassword = errors.New("用户名或密码错误")
 )
 
+//go:generate mockgen -source=./user.go -package=svcmocks -destination=./mocks/user.mock.go UserService
 type UserService interface {
 	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
 	FindOrCreateByWechat(ctx context.Context, info domain.WechatInfo) (domain.User, error)
