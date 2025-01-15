@@ -35,6 +35,21 @@ func (m *MockRankingCache) EXPECT() *MockRankingCacheMockRecorder {
 	return m.recorder
 }
 
+// Get mocks base method.
+func (m *MockRankingCache) Get(ctx context.Context) ([]domain.Article, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx)
+	ret0, _ := ret[0].([]domain.Article)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockRankingCacheMockRecorder) Get(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRankingCache)(nil).Get), ctx)
+}
+
 // Set mocks base method.
 func (m *MockRankingCache) Set(ctx context.Context, articles []domain.Article) error {
 	m.ctrl.T.Helper()

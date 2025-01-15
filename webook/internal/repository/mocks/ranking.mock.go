@@ -35,6 +35,21 @@ func (m *MockRankingRepository) EXPECT() *MockRankingRepositoryMockRecorder {
 	return m.recorder
 }
 
+// GetTopN mocks base method.
+func (m *MockRankingRepository) GetTopN(ctx context.Context) ([]domain.Article, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTopN", ctx)
+	ret0, _ := ret[0].([]domain.Article)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTopN indicates an expected call of GetTopN.
+func (mr *MockRankingRepositoryMockRecorder) GetTopN(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopN", reflect.TypeOf((*MockRankingRepository)(nil).GetTopN), ctx)
+}
+
 // ReplaceTopN mocks base method.
 func (m *MockRankingRepository) ReplaceTopN(ctx context.Context, articles []domain.Article) error {
 	m.ctrl.T.Helper()

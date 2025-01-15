@@ -6,12 +6,13 @@ import (
 	"webook/internal/service"
 	"webook/pkg/logger"
 
+	rlock "github.com/gotomicro/redis-lock"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/robfig/cron/v3"
 )
 
-func InitRankingJob(svc service.RankingService) job.Job {
-	return job.NewRankingJob(svc, time.Second*30)
+func InitRankingJob(client *rlock.Client, svc service.RankingService, l logger.Logger) job.Job {
+	return job.NewRankingJob(client, svc, l, time.Second*30)
 }
 
 func InitJobs(l logger.Logger, j job.Job) *cron.Cron {

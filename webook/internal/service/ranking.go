@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 	"webook/internal/domain"
+	"webook/internal/repository"
 
 	"github.com/ecodeclub/ekit/queue"
 )
@@ -12,20 +13,23 @@ import (
 //go:generate mockgen -source=./ranking.go -package=svcmocks -destination=./mocks/ranking.mock.go RankingService
 type RankingService interface {
 	TopN(ctx context.Context) error
+	GetTopN(ctx context.Context) ([]domain.Article, error)
 }
 
 type BatchRankingService struct {
 	intrSvc   InteractiveService
 	artSvc    ArticleService
+	repo      repository.RankingRepository
 	batchSize int
 	scoreFunc func(likeCnt int64, updateTime time.Time) float64
 	n         int
 }
 
-func NewBatchRankingService(intrSvc InteractiveService, artSvc ArticleService) RankingService {
+func NewBatchRankingService(intrSvc InteractiveService, artSvc ArticleService, repo repository.RankingRepository) RankingService {
 	return &BatchRankingService{
 		intrSvc:   intrSvc,
 		artSvc:    artSvc,
+		repo:      repo,
 		batchSize: 100,
 		n:         100,
 		scoreFunc: func(likeCnt int64, updateTime time.Time) float64 {
@@ -33,6 +37,10 @@ func NewBatchRankingService(intrSvc InteractiveService, artSvc ArticleService) R
 			return float64(likeCnt-1) / math.Pow(duration+2, 1.5)
 		},
 	}
+}
+
+func (s *BatchRankingService) GetTopN(ctx context.Context) ([]domain.Article, error) {
+	return s.repo.GetTopN(ctx)
 }
 
 func (s *BatchRankingService) TopN(ctx context.Context) error {
