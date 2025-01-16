@@ -10,6 +10,8 @@ import (
 
 type CronJobService interface {
 	Preempt(ctx context.Context) (domain.Job, error)
+	ResetNextTime(ctx context.Context, job domain.Job) error
+	// TODO 暴露 job 的 crud 方法
 }
 
 type cronJobService struct {
@@ -25,6 +27,11 @@ func NewCronJobService(repo repository.CronJobRepository, l logger.Logger) CronJ
 		repo: repo,
 		l:    l,
 	}
+}
+
+func (s *cronJobService) ResetNextTime(ctx context.Context, job domain.Job) error {
+	nextTime := job.NextTime()
+	return s.repo.UpdateNextTime(ctx, job.Id, nextTime)
 }
 
 func (s *cronJobService) Preempt(ctx context.Context) (domain.Job, error) {

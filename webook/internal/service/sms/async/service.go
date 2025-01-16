@@ -17,7 +17,7 @@ type Service struct {
 
 var _ sms.Service = (*Service)(nil)
 
-func NewService(svc sms.Service, repo repository.AsyncSmsRepository, l logger.Logger) sms.Service {
+func NewService(svc sms.Service, repo repository.AsyncSmsRepository, l logger.Logger) *Service {
 	res := &Service{
 		svc:  svc,
 		repo: repo,

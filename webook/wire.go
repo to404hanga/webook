@@ -55,9 +55,9 @@ func InitWebServer() *App {
 		cache.NewArticleRedisCache,
 
 		// repository 部分
-		repository.NewUserRepository,
-		repository.NewCodeRepository,
-		repository.NewArticleRepository,
+		repository.NewCachedUserRepository,
+		repository.NewCachedCodeRepository,
+		repository.NewCachedArticleRepository,
 
 		// Service 部分
 		ioc.InitSMSService,

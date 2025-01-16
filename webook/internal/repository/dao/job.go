@@ -11,6 +11,7 @@ type JobDAO interface {
 	Preempt(ctx context.Context) (Job, error)
 	Release(ctx context.Context, jobId int64) error
 	UpdateUpdateTime(ctx context.Context, jobId int64) error
+	UpdateNextTime(ctx context.Context, jobId int64, nextTime time.Time) error
 }
 
 type GormJobDAO struct {
@@ -64,9 +65,20 @@ func (dao *GormJobDAO) UpdateUpdateTime(ctx context.Context, jobId int64) error 
 	}).Error
 }
 
+func (dao *GormJobDAO) UpdateNextTime(ctx context.Context, jobId int64, nextTime time.Time) error {
+	now := time.Now().UnixMilli()
+	return dao.db.WithContext(ctx).Model(&Job{}).Where("id = ?", jobId).Updates(map[string]interface{}{
+		"update_time": now,
+		"next_time":   nextTime.UnixMilli(),
+	}).Error
+}
+
 type Job struct {
-	Id         int64 `gorm:"primaryKey,autoIncrement"`
-	Status     int   // 表达是不是可以抢占，有没有被人抢占
+	Id         int64  `gorm:"primaryKey,autoIncrement"`
+	Name       string `gorm:"type:varchar(128);unique"`
+	Executor   string
+	Expression string // cron 表达式
+	Status     int    // 表达是不是可以抢占，有没有被人抢占
 	Version    int
 	NextTime   int64 `gorm:"index"`
 	UpdateTime int64

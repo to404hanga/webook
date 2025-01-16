@@ -179,7 +179,7 @@ func TestCachedUserRepository(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			uc, ud := tc.mock(ctrl)
-			svc := NewUserRepository(ud, uc)
+			svc := NewCachedUserRepository(ud, uc)
 			user, err := svc.FindById(tc.ctx, tc.uid)
 			assert.Equal(t, tc.wantErr, err)
 			assert.Equal(t, tc.wantUser, user)

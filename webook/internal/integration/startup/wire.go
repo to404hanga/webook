@@ -3,40 +3,112 @@
 package startup
 
 import (
+	"webook/internal/events/article"
+	"webook/internal/job"
 	"webook/internal/repository"
 	"webook/internal/repository/cache"
 	"webook/internal/repository/dao"
+	articleDao "webook/internal/repository/dao/article"
 	"webook/internal/service"
+	"webook/internal/service/sms"
+	"webook/internal/service/sms/async"
 	"webook/internal/web"
-	myJwt "webook/internal/web/jwt"
+	ijwt "webook/internal/web/jwt"
 	"webook/ioc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
+var thirdPartySet = wire.NewSet( // 第三方依赖
+	InitRedis, InitDB,
+	InitSaramaClient,
+	InitSyncProducer,
+	InitLogger,
+)
+
+var jobProviderSet = wire.NewSet(
+	service.NewCronJobService,
+	repository.NewPreemptJobRepository,
+	dao.NewGormJobDAO)
+
+var userSvcProvider = wire.NewSet(
+	dao.NewUserDAO,
+	cache.NewUserCache,
+	repository.NewCachedUserRepository,
+	service.NewUserService)
+
+var articleSvcProvider = wire.NewSet(
+	repository.NewCachedArticleRepository,
+	cache.NewArticleRedisCache,
+	articleDao.NewGormArticleDAO,
+	service.NewArticleService)
+
+var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO,
+	cache.NewInteractiveRedisCache,
+	repository.NewCachedInteractiveRepository,
+	service.NewInteractiveService,
+)
+
 func InitWebServer() *gin.Engine {
 	wire.Build(
-		InitRedis, ioc.InitDB,
-		dao.NewUserDAO,
+		thirdPartySet,
+		userSvcProvider,
+		articleSvcProvider,
+		interactiveSvcSet,
+		// cache 部分
+		cache.NewCodeCache,
 
-		cache.NewCodeCache, cache.NewUserCache,
+		// repository 部分
+		repository.NewCachedCodeRepository,
 
-		repository.NewUserRepository,
-		repository.NewCodeRepository,
+		article.NewSaramaSyncProducer,
 
-		ioc.InitLogger,
-
+		// Service 部分
 		ioc.InitSMSService,
-		ioc.InitWechatService,
-		service.NewUserService,
 		service.NewCodeService,
+		InitWechatService,
 
+		// handler 部分
 		web.NewUserHandler,
+		web.NewArticleHandler,
 		web.NewOAuth2WechatHandler,
-		myJwt.NewRedisJWTHandler,
+		ijwt.NewRedisJWTHandler,
 		ioc.InitGinMiddlewares,
 		ioc.InitWebServer,
 	)
 	return gin.Default()
+}
+
+func InitAsyncSmsService(svc sms.Service) *async.Service {
+	wire.Build(
+		thirdPartySet,
+		repository.NewAsyncSmsRepository,
+		dao.NewGormAsyncSmsDAO,
+		async.NewService,
+	)
+	return &async.Service{}
+}
+
+func InitArticleHandler(dao articleDao.ArticleDAO) *web.ArticleHandler {
+	wire.Build(
+		thirdPartySet,
+		userSvcProvider,
+		interactiveSvcSet,
+		repository.NewCachedArticleRepository,
+		cache.NewArticleRedisCache,
+		service.NewArticleService,
+		article.NewSaramaSyncProducer,
+		web.NewArticleHandler)
+	return &web.ArticleHandler{}
+}
+
+func InitInteractiveService() service.InteractiveService {
+	wire.Build(thirdPartySet, interactiveSvcSet)
+	return service.NewInteractiveService(nil)
+}
+
+func InitJobScheduler() *job.Scheduler {
+	wire.Build(jobProviderSet, thirdPartySet, job.NewScheduler)
+	return &job.Scheduler{}
 }

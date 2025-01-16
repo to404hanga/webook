@@ -30,7 +30,7 @@ type CachedArticleRepository struct {
 
 var _ ArticleRepository = (*CachedArticleRepository)(nil)
 
-func NewArticleRepository(dao dao.ArticleDAO, cache cache.ArticleCache, userRepo UserRepository, l logger.Logger) ArticleRepository {
+func NewCachedArticleRepository(dao dao.ArticleDAO, cache cache.ArticleCache, userRepo UserRepository, l logger.Logger) ArticleRepository {
 	return &CachedArticleRepository{
 		dao:      dao,
 		cache:    cache,
