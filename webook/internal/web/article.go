@@ -10,11 +10,11 @@ import (
 	"webook/internal/errs"
 	"webook/internal/service"
 	"webook/internal/web/jwt"
-	"webook/pkg/ginx"
-	"webook/pkg/logger"
 
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
+	"github.com/to404hanga/pkg404/ginx"
+	"github.com/to404hanga/pkg404/logger"
 	"golang.org/x/sync/errgroup"
 )
 

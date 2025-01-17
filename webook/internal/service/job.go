@@ -5,7 +5,8 @@ import (
 	"time"
 	"webook/internal/domain"
 	"webook/internal/repository"
-	"webook/pkg/logger"
+
+	"github.com/to404hanga/pkg404/logger"
 )
 
 type CronJobService interface {

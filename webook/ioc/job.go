@@ -4,11 +4,11 @@ import (
 	"time"
 	"webook/internal/job"
 	"webook/internal/service"
-	"webook/pkg/logger"
 
 	rlock "github.com/gotomicro/redis-lock"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/robfig/cron/v3"
+	"github.com/to404hanga/pkg404/logger"
 )
 
 func InitRankingJob(client *rlock.Client, svc service.RankingService, l logger.Logger) job.Job {

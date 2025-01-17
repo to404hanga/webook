@@ -2,10 +2,10 @@ package ioc
 
 import (
 	grpc2 "webook/interactive/grpc"
-	"webook/pkg/grpcx"
-	"webook/pkg/logger"
 
 	"github.com/spf13/viper"
+	"github.com/to404hanga/pkg404/grpcx"
+	"github.com/to404hanga/pkg404/logger"
 	"google.golang.org/grpc"
 )
 

@@ -7,12 +7,12 @@ import (
 	"webook/internal/errs"
 	"webook/internal/service"
 	myJwt "webook/internal/web/jwt"
-	"webook/pkg/ginx"
-	"webook/pkg/logger"
 
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/to404hanga/pkg404/ginx"
+	"github.com/to404hanga/pkg404/logger"
 )
 
 const (

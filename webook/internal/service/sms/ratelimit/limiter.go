@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"webook/internal/service/sms"
-	"webook/pkg/limiter"
+
+	"github.com/to404hanga/pkg404/limiter"
 )
 
 var (

@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 	"webook/internal/service"
-	"webook/pkg/logger"
 
 	rlock "github.com/gotomicro/redis-lock"
+	"github.com/to404hanga/pkg404/logger"
 )
 
 type RankingJob struct {

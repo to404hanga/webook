@@ -6,10 +6,10 @@ import (
 	"testing"
 	"webook/internal/service/sms"
 	smsmocks "webook/internal/service/sms/mocks"
-	"webook/pkg/limiter"
-	limitermocks "webook/pkg/limiter/mocks"
 
 	"github.com/tj/assert"
+	"github.com/to404hanga/pkg404/limiter"
+	limitermocks "github.com/to404hanga/pkg404/limiter/mocks"
 	"go.uber.org/mock/gomock"
 )
 

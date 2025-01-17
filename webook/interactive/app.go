@@ -2,7 +2,8 @@ package main
 
 import (
 	"webook/internal/events"
-	"webook/pkg/grpcx"
+
+	"github.com/to404hanga/pkg404/grpcx"
 )
 
 type App struct {

@@ -7,10 +7,10 @@ import (
 	"webook/internal/domain"
 	"webook/internal/repository"
 	repomocks "webook/internal/repository/mocks"
-	"webook/pkg/logger"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/to404hanga/pkg404/logger"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )

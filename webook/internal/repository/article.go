@@ -6,7 +6,8 @@ import (
 	"webook/internal/domain"
 	"webook/internal/repository/cache"
 	dao "webook/internal/repository/dao/article"
-	"webook/pkg/logger"
+
+	"github.com/to404hanga/pkg404/logger"
 )
 
 //go:generate mockgen -source=./article.go -package=repomocks -destination=./mocks/article.mock.go ArticleRepository

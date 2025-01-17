@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"webook/internal/domain"
-	"webook/pkg/logger"
+
+	"github.com/to404hanga/pkg404/logger"
 )
 
 type Service interface {

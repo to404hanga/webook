@@ -6,7 +6,8 @@ import (
 	"webook/internal/domain"
 	"webook/internal/events/article"
 	"webook/internal/repository"
-	"webook/pkg/logger"
+
+	"github.com/to404hanga/pkg404/logger"
 )
 
 //go:generate mockgen -source=./article.go -package=svcmocks -destination=./mocks/article.mock.go ArticleService

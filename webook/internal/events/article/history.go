@@ -5,10 +5,10 @@ import (
 	"time"
 	"webook/internal/domain"
 	"webook/internal/repository"
-	"webook/pkg/logger"
-	"webook/pkg/saramax"
 
 	"github.com/IBM/sarama"
+	"github.com/to404hanga/pkg404/logger"
+	"github.com/to404hanga/pkg404/saramax"
 )
 
 type HistoryRecordConsumer struct {

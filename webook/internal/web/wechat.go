@@ -7,11 +7,11 @@ import (
 	"webook/internal/service"
 	"webook/internal/service/oauth2/wechat"
 	myJwt "webook/internal/web/jwt"
-	"webook/pkg/ginx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	uuid "github.com/lithammer/shortuuid/v4"
+	"github.com/to404hanga/pkg404/ginx"
 )
 
 type OAuth2WechatHandler struct {

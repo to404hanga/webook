@@ -10,12 +10,12 @@ import (
 	"webook/internal/domain"
 	"webook/internal/service"
 	svcmocks "webook/internal/service/mocks"
-	"webook/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/tj/assert"
+	"github.com/to404hanga/pkg404/logger"
 	"go.uber.org/zap"
 )
 

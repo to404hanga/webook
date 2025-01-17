@@ -6,7 +6,8 @@ import (
 	"webook/internal/domain"
 	"webook/internal/repository"
 	"webook/internal/service/sms"
-	"webook/pkg/logger"
+
+	"github.com/to404hanga/pkg404/logger"
 )
 
 type Service struct {

@@ -5,11 +5,11 @@ import (
 	"webook/internal/service/sms"
 	localsms "webook/internal/service/sms/localsms"
 	"webook/internal/service/sms/tencent"
-	"webook/pkg/logger"
 
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tencentSMS "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"
+	"github.com/to404hanga/pkg404/logger"
 )
 
 func InitSMSService() sms.Service {

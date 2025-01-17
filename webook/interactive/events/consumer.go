@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 	"webook/interactive/repository"
-	"webook/pkg/logger"
-	"webook/pkg/saramax"
+
+	"github.com/to404hanga/pkg404/logger"
+	"github.com/to404hanga/pkg404/saramax"
 
 	"github.com/IBM/sarama"
 )

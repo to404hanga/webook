@@ -3,10 +3,10 @@ package job
 import (
 	"strconv"
 	"time"
-	"webook/pkg/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/robfig/cron/v3"
+	"github.com/to404hanga/pkg404/logger"
 )
 
 type CronJobBuilder struct {

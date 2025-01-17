@@ -3,7 +3,8 @@ package ioc
 import (
 	"os"
 	"webook/internal/service/oauth2/wechat"
-	"webook/pkg/logger"
+
+	"github.com/to404hanga/pkg404/logger"
 )
 
 func InitWechatService(l logger.Logger) wechat.Service {

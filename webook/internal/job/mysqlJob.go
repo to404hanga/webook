@@ -6,8 +6,8 @@ import (
 	"time"
 	"webook/internal/domain"
 	"webook/internal/service"
-	"webook/pkg/logger"
 
+	"github.com/to404hanga/pkg404/logger"
 	"golang.org/x/sync/semaphore"
 )
 

@@ -3,11 +3,11 @@ package ioc
 import (
 	dao2 "webook/interactive/repository/dao"
 	"webook/internal/repository/dao"
-	"webook/pkg/gormx"
-	"webook/pkg/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/viper"
+	"github.com/to404hanga/pkg404/gormx"
+	"github.com/to404hanga/pkg404/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	glogger "gorm.io/gorm/logger"

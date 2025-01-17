@@ -10,7 +10,8 @@ import (
 	"testing"
 	"time"
 	"webook/internal/integration/startup"
-	"webook/pkg/ginx"
+
+	"github.com/to404hanga/pkg404/ginx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tj/assert"

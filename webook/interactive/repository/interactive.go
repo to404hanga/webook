@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
-
 	"webook/interactive/domain"
 	"webook/interactive/repository/cache"
 	"webook/interactive/repository/dao"
-	"webook/pkg/logger"
+
+	"github.com/to404hanga/pkg404/logger"
 )
 
 //go:generate mockgen -source=./interactive.go -package=repomocks -destination=./mocks/interactive.mock.go InteractiveRepository
