@@ -1,14 +1,21 @@
-package article
+package events
 
 import (
 	"context"
 	"time"
-	"webook/internal/repository"
+	"webook/interactive/repository"
 	"webook/pkg/logger"
 	"webook/pkg/saramax"
 
 	"github.com/IBM/sarama"
 )
+
+const TopicReadEvent = "article_read"
+
+type ReadEvent struct {
+	Aid int64
+	Uid int64
+}
 
 type InteractiveReadEventConsumer struct {
 	repo   repository.InteractiveRepository

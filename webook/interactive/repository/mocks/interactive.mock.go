@@ -7,7 +7,7 @@ package repomocks
 import (
 	context "context"
 	reflect "reflect"
-	domain "webook/internal/domain"
+	domain "webook/interactive/domain"
 
 	gomock "github.com/golang/mock/gomock"
 )

@@ -7,7 +7,7 @@ package daomocks
 import (
 	context "context"
 	reflect "reflect"
-	dao "webook/internal/repository/dao"
+	dao "webook/interactive/repository/dao"
 
 	gomock "github.com/golang/mock/gomock"
 )

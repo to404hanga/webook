@@ -9,8 +9,8 @@ import (
 	"webook/pkg/limiter"
 	limitermocks "webook/pkg/limiter/mocks"
 
-	"github.com/golang/mock/gomock"
 	"github.com/tj/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestRateLimiterSMSService(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"webook/internal/service/sms"
 	smsmocks "webook/internal/service/sms/mocks"
 
-	"github.com/golang/mock/gomock"
 	"github.com/tj/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestFailoverSMSService_Send(t *testing.T) {

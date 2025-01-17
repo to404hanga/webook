@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+var ErrRecordNotFound = gorm.ErrRecordNotFound
+
 //go:generate mockgen -source=./interactive.go -package=daomocks -destination=./mocks/interactive.mock.go InteractiveDAO
 type InteractiveDAO interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
@@ -21,17 +23,17 @@ type InteractiveDAO interface {
 	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error)
 }
 
-type GORMInteractiveDAO struct {
+type GormInteractiveDAO struct {
 	db *gorm.DB
 }
 
-func (dao *GORMInteractiveDAO) GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) {
+func (dao *GormInteractiveDAO) GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) {
 	var res []Interactive
 	err := dao.db.WithContext(ctx).Where("biz = ? AND biz_id IN ?", biz, ids).Find(&res).Error
 	return res, err
 }
 
-func (dao *GORMInteractiveDAO) Get(ctx context.Context, biz string, id int64) (Interactive, error) {
+func (dao *GormInteractiveDAO) Get(ctx context.Context, biz string, id int64) (Interactive, error) {
 	var res Interactive
 	err := dao.db.WithContext(ctx).
 		Where("biz = ? AND biz_id = ?", biz, id).
@@ -39,7 +41,7 @@ func (dao *GORMInteractiveDAO) Get(ctx context.Context, biz string, id int64) (I
 	return res, err
 }
 
-func (dao *GORMInteractiveDAO) GetLikeInfo(ctx context.Context, biz string, id int64, uid int64) (UserLikeBiz, error) {
+func (dao *GormInteractiveDAO) GetLikeInfo(ctx context.Context, biz string, id int64, uid int64) (UserLikeBiz, error) {
 	var res UserLikeBiz
 	err := dao.db.WithContext(ctx).
 		Where("biz = ? AND biz_id = ? AND uid = ? AND status = ?",
@@ -48,7 +50,7 @@ func (dao *GORMInteractiveDAO) GetLikeInfo(ctx context.Context, biz string, id i
 	return res, err
 }
 
-func (dao *GORMInteractiveDAO) GetCollectInfo(ctx context.Context, biz string, id int64, uid int64) (UserCollectionBiz, error) {
+func (dao *GormInteractiveDAO) GetCollectInfo(ctx context.Context, biz string, id int64, uid int64) (UserCollectionBiz, error) {
 	var res UserCollectionBiz
 	err := dao.db.WithContext(ctx).
 		Where("biz = ? AND biz_id = ? AND uid = ?", biz, id, uid).
@@ -56,7 +58,7 @@ func (dao *GORMInteractiveDAO) GetCollectInfo(ctx context.Context, biz string, i
 	return res, err
 }
 
-func (dao *GORMInteractiveDAO) InsertCollectionBiz(ctx context.Context, cb UserCollectionBiz) error {
+func (dao *GormInteractiveDAO) InsertCollectionBiz(ctx context.Context, cb UserCollectionBiz) error {
 	now := time.Now().UnixMilli()
 	cb.CreateTime = now
 	cb.UpdateTime = now
@@ -68,7 +70,7 @@ func (dao *GORMInteractiveDAO) InsertCollectionBiz(ctx context.Context, cb UserC
 		return tx.WithContext(ctx).Clauses(clause.OnConflict{
 			DoUpdates: clause.Assignments(map[string]interface{}{
 				"collect_cnt": gorm.Expr("`collect_cnt` + 1"),
-				"UpdateTime":  now,
+				"update_time": now,
 			}),
 		}).Create(&Interactive{
 			Biz:        cb.Biz,
@@ -80,13 +82,13 @@ func (dao *GORMInteractiveDAO) InsertCollectionBiz(ctx context.Context, cb UserC
 	})
 }
 
-func (dao *GORMInteractiveDAO) InsertLikeInfo(ctx context.Context, biz string, id int64, uid int64) error {
+func (dao *GormInteractiveDAO) InsertLikeInfo(ctx context.Context, biz string, id int64, uid int64) error {
 	now := time.Now().UnixMilli()
 	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Clauses(clause.OnConflict{
 			DoUpdates: clause.Assignments(map[string]interface{}{
-				"UpdateTime": now,
-				"status":     1,
+				"update_time": now,
+				"status":      1,
 			}),
 		}).Create(&UserLikeBiz{
 			Uid:        uid,
@@ -101,8 +103,8 @@ func (dao *GORMInteractiveDAO) InsertLikeInfo(ctx context.Context, biz string, i
 		}
 		return tx.WithContext(ctx).Clauses(clause.OnConflict{
 			DoUpdates: clause.Assignments(map[string]interface{}{
-				"like_cnt":   gorm.Expr("`like_cnt` + 1"),
-				"UpdateTime": now,
+				"like_cnt":    gorm.Expr("`like_cnt` + 1"),
+				"update_time": now,
 			}),
 		}).Create(&Interactive{
 			Biz:        biz,
@@ -114,14 +116,14 @@ func (dao *GORMInteractiveDAO) InsertLikeInfo(ctx context.Context, biz string, i
 	})
 }
 
-func (dao *GORMInteractiveDAO) DeleteLikeInfo(ctx context.Context, biz string, id int64, uid int64) error {
+func (dao *GormInteractiveDAO) DeleteLikeInfo(ctx context.Context, biz string, id int64, uid int64) error {
 	now := time.Now().UnixMilli()
 	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Model(&UserLikeBiz{}).
 			Where("uid=? AND biz_id = ? AND biz=?", uid, id, biz).
 			Updates(map[string]interface{}{
-				"UpdateTime": now,
-				"status":     0,
+				"update_time": now,
+				"status":      0,
 			}).Error
 		if err != nil {
 			return err
@@ -129,19 +131,19 @@ func (dao *GORMInteractiveDAO) DeleteLikeInfo(ctx context.Context, biz string, i
 		return tx.Model(&Interactive{}).
 			Where("biz =? AND biz_id=?", biz, id).
 			Updates(map[string]interface{}{
-				"like_cnt":   gorm.Expr("`like_cnt` - 1"),
-				"UpdateTime": now,
+				"like_cnt":    gorm.Expr("`like_cnt` - 1"),
+				"update_time": now,
 			}).Error
 	})
 }
 
-func NewGORMInteractiveDAO(db *gorm.DB) InteractiveDAO {
-	return &GORMInteractiveDAO{db: db}
+func NewGormInteractiveDAO(db *gorm.DB) InteractiveDAO {
+	return &GormInteractiveDAO{db: db}
 }
 
-func (dao *GORMInteractiveDAO) BatchIncrReadCnt(ctx context.Context, bizs []string, bizIds []int64) error {
+func (dao *GormInteractiveDAO) BatchIncrReadCnt(ctx context.Context, bizs []string, bizIds []int64) error {
 	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		txDAO := NewGORMInteractiveDAO(tx)
+		txDAO := NewGormInteractiveDAO(tx)
 		for i := 0; i < len(bizs); i++ {
 			err := txDAO.IncrReadCnt(ctx, bizs[i], bizIds[i])
 			if err != nil {
@@ -152,12 +154,12 @@ func (dao *GORMInteractiveDAO) BatchIncrReadCnt(ctx context.Context, bizs []stri
 	})
 }
 
-func (dao *GORMInteractiveDAO) IncrReadCnt(ctx context.Context, biz string, bizId int64) error {
+func (dao *GormInteractiveDAO) IncrReadCnt(ctx context.Context, biz string, bizId int64) error {
 	now := time.Now().UnixMilli()
 	return dao.db.WithContext(ctx).Clauses(clause.OnConflict{
 		DoUpdates: clause.Assignments(map[string]interface{}{
-			"read_cnt":   gorm.Expr("`read_cnt` + 1"),
-			"UpdateTime": now,
+			"read_cnt":    gorm.Expr("`read_cnt` + 1"),
+			"update_time": now,
 		}),
 	}).Create(&Interactive{
 		Biz:        biz,

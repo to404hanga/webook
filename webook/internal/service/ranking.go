@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"time"
+	intrv1 "webook/api/proto/gen/intr/v1"
 	"webook/internal/domain"
 	"webook/internal/repository"
 
@@ -17,7 +18,7 @@ type RankingService interface {
 }
 
 type BatchRankingService struct {
-	intrSvc   InteractiveService
+	intrSvc   intrv1.InteractiveServiceClient
 	artSvc    ArticleService
 	repo      repository.RankingRepository
 	batchSize int
@@ -25,7 +26,7 @@ type BatchRankingService struct {
 	n         int
 }
 
-func NewBatchRankingService(intrSvc InteractiveService, artSvc ArticleService, repo repository.RankingRepository) RankingService {
+func NewBatchRankingService(intrSvc intrv1.InteractiveServiceClient, artSvc ArticleService, repo repository.RankingRepository) RankingService {
 	return &BatchRankingService{
 		intrSvc:   intrSvc,
 		artSvc:    artSvc,
@@ -81,10 +82,14 @@ func (s *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error
 		if len(articles) == 0 {
 			break
 		}
-		intrMap, err := s.intrSvc.GetByIds(ctx, "article", ids)
+		intrResp, err := s.intrSvc.GetByIds(ctx, &intrv1.GetByIdsRequest{
+			Biz: "article",
+			Ids: ids,
+		})
 		if err != nil {
 			return nil, err
 		}
+		intrMap := intrResp.GetIntrs()
 		for _, a := range articles {
 			intr := intrMap[a.Id]
 			score := s.scoreFunc(intr.LikeCnt, a.UpdateTime)

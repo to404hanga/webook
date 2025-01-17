@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	intrv1 "webook/api/proto/gen/intr/v1"
 	"webook/internal/domain"
 	"webook/internal/errs"
 	"webook/internal/service"
@@ -19,12 +20,12 @@ import (
 
 type ArticleHandler struct {
 	svc     service.ArticleService
-	intrSvc service.InteractiveService
+	intrSvc intrv1.InteractiveServiceClient
 	l       logger.Logger
 	biz     string
 }
 
-func NewArticleHandler(l logger.Logger, svc service.ArticleService, intrSvc service.InteractiveService) *ArticleHandler {
+func NewArticleHandler(l logger.Logger, svc service.ArticleService, intrSvc intrv1.InteractiveServiceClient) *ArticleHandler {
 	return &ArticleHandler{
 		l:       l,
 		svc:     svc,
@@ -265,7 +266,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	var (
 		eg   errgroup.Group
 		art  domain.Article
-		intr domain.Interactive
+		intr *intrv1.GetResponse
 	)
 
 	uc := ctx.MustGet("user").(jwt.UserClaims)
@@ -276,7 +277,11 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	})
 	eg.Go(func() error {
 		var er error
-		intr, er = h.intrSvc.Get(ctx.Request.Context(), h.biz, id, uc.UserId)
+		intr, er = h.intrSvc.Get(ctx.Request.Context(), &intrv1.GetRequest{
+			Biz:   h.biz,
+			BizId: id,
+			Uid:   uc.UserId,
+		})
 		return er
 	})
 
@@ -287,10 +292,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 			Msg:  "系统错误",
 			Code: errs.ArticleInternalServerError,
 		})
-		h.l.Error("查询文章失败，系统错误",
-			logger.Int64("aid", id),
-			logger.Int64("UserId", uc.UserId),
-			logger.Error(err))
+		h.l.Error("查询文章失败，系统错误", logger.Int64("aid", id), logger.Int64("UserId", uc.UserId), logger.Error(err))
 		return
 	}
 
@@ -315,11 +317,11 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 			Content:    art.Content,
 			AuthorId:   art.Author.Id,
 			AuthorName: art.Author.Name,
-			ReadCnt:    intr.ReadCnt,
-			CollectCnt: intr.CollectCnt,
-			LikeCnt:    intr.LikeCnt,
-			Liked:      intr.Liked,
-			Collected:  intr.Collected,
+			ReadCnt:    intr.GetIntr().GetReadCnt(),
+			CollectCnt: intr.GetIntr().GetCollectCnt(),
+			LikeCnt:    intr.GetIntr().GetLikeCnt(),
+			Liked:      intr.GetIntr().GetLiked(),
+			Collected:  intr.GetIntr().GetCollected(),
 
 			Status:     art.Status.ToUint8(),
 			CreateTime: art.CreateTime.Format(time.DateTime),
@@ -342,10 +344,18 @@ func (h *ArticleHandler) Like(ctx *gin.Context) {
 	var err error
 	if req.Like {
 		// 点赞
-		err = h.intrSvc.Like(ctx.Request.Context(), h.biz, req.Id, uc.UserId)
+		_, err = h.intrSvc.Like(ctx.Request.Context(), &intrv1.LikeRequest{
+			Biz:   h.biz,
+			BizId: req.Id,
+			Uid:   uc.UserId,
+		})
 	} else {
 		// 取消点赞
-		err = h.intrSvc.CancelLike(ctx.Request.Context(), h.biz, req.Id, uc.UserId)
+		_, err = h.intrSvc.CancelLike(ctx.Request.Context(), &intrv1.CancelLikeRequest{
+			Biz:   h.biz,
+			BizId: req.Id,
+			Uid:   uc.UserId,
+		})
 	}
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
@@ -374,7 +384,12 @@ func (h *ArticleHandler) Collect(ctx *gin.Context) {
 	}
 	uc := ctx.MustGet("user").(jwt.UserClaims)
 
-	err := h.intrSvc.Collect(ctx.Request.Context(), h.biz, req.Id, req.Cid, uc.UserId)
+	_, err := h.intrSvc.Collect(ctx.Request.Context(), &intrv1.CollectRequest{
+		Biz:   h.biz,
+		BizId: req.Id,
+		Cid:   req.Cid,
+		Uid:   uc.UserId,
+	})
 	if err != nil {
 		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: errs.ArticleInternalServerError,

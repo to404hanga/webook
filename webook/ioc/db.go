@@ -1,6 +1,7 @@
 package ioc
 
 import (
+	dao2 "webook/interactive/repository/dao"
 	"webook/internal/repository/dao"
 	"webook/pkg/gormx"
 	"webook/pkg/logger"
@@ -79,6 +80,13 @@ func InitDB(l logger.Logger) *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
+	// TODO 拆分为微服务后删除这块
+	err = dao2.InitTables(db)
+	if err != nil {
+		panic(err)
+	}
+
 	return db
 }
 
