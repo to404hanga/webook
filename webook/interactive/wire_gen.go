@@ -24,8 +24,11 @@ import (
 // Injectors from wire.go:
 
 func InitApp() *App {
+	srcDB := ioc.InitSrcDB()
+	dstDB := ioc.InitDstDB()
 	logger := ioc.InitLogger()
-	db := ioc.InitDB(logger)
+	doubleWritePool := ioc.InitDoubleWritePool(srcDB, dstDB, logger)
+	db := ioc.InitBizDB(doubleWritePool)
 	interactiveDAO := dao.NewGormInteractiveDAO(db)
 	cmdable := ioc.InitRedis()
 	interactiveCache := cache.NewInteractiveRedisCache(cmdable)
@@ -36,15 +39,19 @@ func InitApp() *App {
 	interactiveService := service.NewInteractiveService(interactiveRepository)
 	interactiveServiceServer := grpc.NewInteractiveServiceServer(interactiveService)
 	server := ioc.NewGrpcxServer(interactiveServiceServer, logger)
+	syncProducer := ioc.InitSaramaSyncProducer(client)
+	producer := ioc.InitInteractiveProducer(syncProducer)
+	ginxServer := ioc.InitGinxServer(logger, srcDB, dstDB, doubleWritePool, producer)
 	app := &App{
-		consumers: v,
-		server:    server,
+		consumers:   v,
+		server:      server,
+		adminServer: ginxServer,
 	}
 	return app
 }
 
 // wire.go:
 
-var thirdPartySet = wire.NewSet(ioc.InitDB, ioc.InitLogger, ioc.InitRedis, ioc.InitSaramaClient)
+var thirdPartySet = wire.NewSet(ioc.InitSrcDB, ioc.InitDstDB, ioc.InitDoubleWritePool, ioc.InitBizDB, ioc.InitLogger, ioc.InitSaramaClient, ioc.InitSaramaSyncProducer, ioc.InitRedis)
 
 var interactiveSvcSet = wire.NewSet(dao.NewGormInteractiveDAO, cache.NewInteractiveRedisCache, repository.NewCachedInteractiveRepository, service.NewInteractiveService)

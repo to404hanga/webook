@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
@@ -10,20 +12,35 @@ import (
 
 func main() {
 	initViper()
-
 	app := InitApp()
-	// initPrometheus()
+	initPrometheus()
+
 	for _, c := range app.consumers {
 		err := c.Start()
 		if err != nil {
 			panic(err)
 		}
 	}
+
+	go func() {
+		err := app.adminServer.Start()
+		panic(err)
+	}()
+
 	err := app.server.Serve()
 	if err != nil {
 		panic(err)
 	}
 }
+
+func initPrometheus() {
+	go func() {
+		// 专门给 prometheus 用的端口
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":8081", nil)
+	}()
+}
+
 func initViper() {
 	cfile := pflag.String("config",
 		"config/dev.yaml", "配置文件路径")

@@ -6,6 +6,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/viper"
 	"github.com/to404hanga/pkg404/gormx"
+	"github.com/to404hanga/pkg404/gormx/connpool"
 	"github.com/to404hanga/pkg404/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -13,14 +14,39 @@ import (
 	prometheusG "gorm.io/plugin/prometheus"
 )
 
-func InitDB(l logger.Logger) *gorm.DB {
+type SrcDB *gorm.DB
+type DstDB *gorm.DB
+
+func InitSrcDB() SrcDB {
+	return initDB("src")
+}
+
+func InitDstDB() DstDB {
+	return initDB("dst")
+}
+
+func InitDoubleWritePool(src SrcDB, dst DstDB, l logger.Logger) *connpool.DoubleWritePool {
+	return connpool.NewDoubleWritePool(src, dst, l)
+}
+
+func InitBizDB(p *connpool.DoubleWritePool) *gorm.DB {
+	doubleWrite, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: p,
+	}))
+	if err != nil {
+		panic(err)
+	}
+	return doubleWrite
+}
+
+func initDB(key string) *gorm.DB {
 	type Config struct {
 		DSN string `yaml:"dsn"`
 	}
 	var cfg Config = Config{
-		DSN: "root:root@tcp(localhost:3316)/webook",
+		DSN: "root:root@tcp(localhost:3307)/webook",
 	}
-	err := viper.UnmarshalKey("db", &cfg)
+	err := viper.UnmarshalKey("db."+key, &cfg)
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +55,7 @@ func InitDB(l logger.Logger) *gorm.DB {
 		panic(err)
 	}
 	err = db.Use(prometheusG.New(prometheusG.Config{
-		DBName:          "webook",
+		DBName:          "webook_" + key,
 		RefreshInterval: 15,
 		MetricsCollector: []prometheusG.MetricsCollector{
 			&prometheusG.MySQL{
@@ -44,7 +70,7 @@ func InitDB(l logger.Logger) *gorm.DB {
 	cb := gormx.NewCallbacks(prometheus.SummaryOpts{
 		Namespace: "to404hanga_lsh",
 		Subsystem: "webook",
-		Name:      "gorm_db",
+		Name:      "gorm_db_" + key,
 		Help:      "统计 gorm 的数据库查询",
 		ConstLabels: map[string]string{
 			"instance_id": "my_instance",
@@ -63,7 +89,7 @@ func InitDB(l logger.Logger) *gorm.DB {
 		panic(err)
 	}
 
-	err = db.Use(tracing.NewPlugin(tracing.WithoutMetrics(), tracing.WithDBName("webook")))
+	err = db.Use(tracing.NewPlugin(tracing.WithoutMetrics(), tracing.WithDBName("webook_"+key)))
 	if err != nil {
 		panic(err)
 	}

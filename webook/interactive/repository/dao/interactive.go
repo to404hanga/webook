@@ -4,11 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/to404hanga/pkg404/migrator"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-var ErrRecordNotFound = gorm.ErrRecordNotFound
 
 //go:generate mockgen -source=./interactive.go -package=daomocks -destination=./mocks/interactive.mock.go InteractiveDAO
 type InteractiveDAO interface {
@@ -205,4 +204,30 @@ type Interactive struct {
 	CollectCnt int64
 	UpdateTime int64
 	CreateTime int64
+}
+
+func EqualInteractiveSlice(a, b []Interactive) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+var _ migrator.Entity = (*Interactive)(nil)
+
+func (i Interactive) ID() int64 {
+	return i.Id
+}
+
+func (i Interactive) CompareTo(dst migrator.Entity) bool {
+	val, ok := dst.(Interactive)
+	if !ok {
+		return false
+	}
+	return i == val
 }
