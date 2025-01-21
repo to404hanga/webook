@@ -3,7 +3,6 @@
 package main
 
 import (
-	"webook/interactive/events"
 	repository2 "webook/interactive/repository"
 	cache2 "webook/interactive/repository/cache"
 	dao2 "webook/interactive/repository/dao"
@@ -42,19 +41,22 @@ func InitWebServer() *App {
 		ioc.InitSaramaClient,
 		ioc.InitSyncProducer,
 		ioc.InitRLockClient,
+		ioc.InitEtcd,
 		// DAO 部分
 		dao.NewUserDAO,
 		articleDao.NewGormArticleDAO,
 
-		interactiveSvcSet,
-		ioc.InitIntrClient,
+		// interactiveSvcSet, // 微服务迁移时才需要这个
+		// ioc.InitIntrClient, // 微服务迁移时用这个，迁移完用 V1
+		ioc.InitIntrClientV1,
 		rankingSvcSet,
 		ioc.InitJobs,
 		ioc.InitRankingJob,
 
 		article.NewSaramaSyncProducer,
-		events.NewInteractiveReadEventConsumer,
-		ioc.InitConsumers,
+		// events.NewInteractiveReadEventConsumer, // 微服务迁移时才需要这个
+		// ioc.InitConsumers, // 微服务迁移时用这个，迁移完用 V1
+		ioc.InitConsumersV1,
 
 		// cache 部分
 		cache.NewCodeCache, cache.NewUserCache,

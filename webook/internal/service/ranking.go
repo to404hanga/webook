@@ -8,7 +8,7 @@ import (
 	"webook/internal/domain"
 	"webook/internal/repository"
 
-	"github.com/ecodeclub/ekit/queue"
+	"github.com/to404hanga/pkg404/stl/queue"
 )
 
 //go:generate mockgen -source=./ranking.go -package=svcmocks -destination=./mocks/ranking.mock.go RankingService
@@ -61,13 +61,16 @@ func (s *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error
 		score float64
 		art   domain.Article
 	}
-	topN := queue.NewPriorityQueue(s.n, func(src Score, dst Score) int {
-		if src.score > dst.score {
-			return 1
-		} else if src.score < dst.score {
-			return -1
-		}
-		return 0
+	// topN := queue.NewPriorityQueue(s.n, func(src Score, dst Score) int {
+	// 	if src.score > dst.score {
+	// 		return 1
+	// 	} else if src.score < dst.score {
+	// 		return -1
+	// 	}
+	// 	return 0
+	// })
+	topN := queue.NewPriorityQueueFunc(func(left, right Score) bool {
+		return left.score < right.score
 	})
 
 	for {
@@ -97,13 +100,13 @@ func (s *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error
 				score: score,
 				art:   a,
 			}
-			err = topN.Enqueue(ele)
-			if err == queue.ErrOutOfCapacity {
-				min, _ := topN.Dequeue()
+			topN.Push(ele)
+			if topN.Len() > s.n {
+				min := topN.Pop()
 				if min.score < score {
-					_ = topN.Enqueue(ele)
+					topN.Push(ele)
 				} else {
-					_ = topN.Enqueue(min)
+					topN.Push(min)
 				}
 			}
 		}
@@ -116,7 +119,7 @@ func (s *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error
 
 	res := make([]domain.Article, topN.Len())
 	for i := topN.Len() - 1; i >= 0; i-- {
-		ele, _ := topN.Dequeue()
+		ele := topN.Pop()
 		res[i] = ele.art
 	}
 	return res, nil

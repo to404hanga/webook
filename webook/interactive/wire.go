@@ -38,6 +38,7 @@ func InitApp() *App {
 		interactiveSvcSet,
 		grpc.NewInteractiveServiceServer,
 		events.NewInteractiveReadEventConsumer,
+		ioc.InitEtcdClient,
 		ioc.InitInteractiveProducer,
 		// ioc.InitFixerConsumer,
 		ioc.InitConsumers,

@@ -11,6 +11,11 @@ kafka:
   addr:
     - "localhost:9094"
 
+etcd:
+  addrs:
+    - localhost:2379
+
 grpc:
   client:
-    intr: localhost:8090
+    intr: 
+      addr: "etcd:///service/interactive"

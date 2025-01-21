@@ -14,9 +14,15 @@ kafka:
   addr:
     - "localhost:9094"
 
+etcd:
+  endpoints:
+    - localhost:2379
+
 grpc:
   server:
-    addr: ":8090"
+    port: 8094
+    etcdAddr: localhost:2379
+    etcdTTL: 60
 
 migrator:
   http:

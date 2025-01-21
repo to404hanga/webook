@@ -37,3 +37,7 @@ func InitSyncProducer(c sarama.Client) sarama.SyncProducer {
 func InitConsumers(c1 *events2.InteractiveReadEventConsumer) []events.Consumer {
 	return []events.Consumer{c1}
 }
+
+func InitConsumersV1() []events.Consumer {
+	return []events.Consumer{}
+}

@@ -13,7 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/to404hanga/pkg404/ginx/middleware/ratelimit"
 	"github.com/to404hanga/pkg404/ginx/prometheus"
-	"github.com/to404hanga/pkg404/limiter"
+	"github.com/to404hanga/pkg404/limiter/redisslidewindow"
 	"github.com/to404hanga/pkg404/logger"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
@@ -60,7 +60,7 @@ func InitGinMiddlewares(redisClient redis.Cmdable, hdl ijwt.Handler, l logger.Lo
 		pb.BuildResponseTime(),
 		pb.BuildActiveRequest(),
 		otelgin.Middleware("webook"),
-		ratelimit.NewBuilder(limiter.NewRedisSlidingWindowLimiter(redisClient, time.Second, 1000)).Build(),
+		ratelimit.NewBuilder(redisslidewindow.NewRedisSlidingWindowLimiter(redisClient, time.Second, 1000)).Build(),
 		middleware.NewLogMiddlewareBuilder(func(ctx context.Context, al middleware.AccessLog) {
 			l.Debug("", logger.Field{Key: "req", Val: al})
 		}).AllowReqBody().AllowRespBody().Build(),

@@ -6,14 +6,15 @@ import (
 	"github.com/spf13/viper"
 	"github.com/to404hanga/pkg404/grpcx"
 	"github.com/to404hanga/pkg404/logger"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 )
 
-func NewGrpcxServer(intrSvc *grpc2.InteractiveServiceServer, l logger.Logger) *grpcx.Server {
+func NewGrpcxServer(intrSvc *grpc2.InteractiveServiceServer, ecli *clientv3.Client, l logger.Logger) *grpcx.Server {
 	type Config struct {
 		EtcdAddr string `yaml:"etcdAddr"`
 		Port     int    `yaml:"port"`
-		Name     string `yaml:"name"`
+		EtcdTTL  int64  `yaml:"name"`
 	}
 	s := grpc.NewServer()
 	intrSvc.Register(s)
@@ -23,9 +24,11 @@ func NewGrpcxServer(intrSvc *grpc2.InteractiveServiceServer, l logger.Logger) *g
 		panic(err)
 	}
 	return &grpcx.Server{
-		Server: s,
-		Port:   cfg.Port,
-		Name:   cfg.Name,
-		L:      l,
+		Server:     s,
+		Port:       cfg.Port,
+		Name:       "interactive",
+		L:          l,
+		EtcdTTL:    cfg.EtcdTTL,
+		EtcdClient: ecli,
 	}
 }
