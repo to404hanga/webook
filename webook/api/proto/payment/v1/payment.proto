@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+// buf:lint:ignore PACKAGE_DIRECTORY_MATCH
+package pmt.v1;
+option go_package = "pmt/v1;pmtv1";
+
+service WechatPaymentService {
+    // buf:lint:ignore RPC_REQUEST_STANDARD_NAME
+    rpc NativePrepay(PrepayRequest) returns (NativePrepayResponse);
+    rpc GetPayment(GetPaymentRequest) returns (GetPaymentResponse);
+}
+
+message GetPaymentRequest {
+    string biz_trade_no = 1;
+}
+
+message GetPaymentResponse {
+    PaymentStatus status = 1;
+}
+
+message PrepayRequest {
+    Amount amt = 1;
+    string biz_trade_no = 2;
+    string description = 3;
+}
+
+message Amount {
+    int64 total = 1;
+    string currency = 2;
+}
+
+enum PaymentStatus {
+    PaymentStatusUnknown = 0;
+    PaymentStatusInit = 1;
+    PaymentStatusSuccess = 2;
+    PaymentStatusFailed = 3;
+    PaymentStatusRefund = 4;
+}
+
+message NativePrepayResponse {
+    string code_url = 1;
+}

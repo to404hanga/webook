@@ -29,6 +29,7 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.1084
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.1084
 	github.com/tj/assert v0.0.3
+	github.com/wechatpay-apiv3/wechatpay-go v0.2.20
 	go.etcd.io/etcd/client/v3 v3.5.17
 	go.mongodb.org/mongo-driver v1.17.2
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.58.0
