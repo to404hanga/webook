@@ -1,0 +1,19 @@
+db:
+  dsn: "root:123456@tcp(localhost:3307)/webook_reward"
+
+grpc:
+  server:
+    port: 8099
+    etcdTTL: 60
+  client:
+    payment:
+      target: "etcd:///service/payment"
+    account:
+      target: "etcd:///service/account"
+
+etcd:
+  endpoints:
+    - "localhost:2379"
+
+redis:
+  addr: "localhost:6379"
