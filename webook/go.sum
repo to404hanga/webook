@@ -554,8 +554,8 @@ github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.1084 h1:z4CvPH
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.1084/go.mod h1:aMK6luKkKonzUn2ojKYeaMDjIwoADLAbFxcI7IRtHYg=
 github.com/tj/assert v0.0.3 h1:Df/BlaZ20mq6kuai7f5z2TvPFiwC3xaWJSDQNiIS3Rk=
 github.com/tj/assert v0.0.3/go.mod h1:Ne6X72Q+TB1AteidzQncjw9PabbMp4PBMZ1k+vd1Pvk=
-github.com/to404hanga/pkg404 v0.0.9 h1:WNCVKy67tR2QT6gHFyf9C18wDFfp9o6UPvDQ898KFRI=
-github.com/to404hanga/pkg404 v0.0.9/go.mod h1:fegHTqhjoNQabeTu7z36x+Pp564Y6XW6AFg3dQGxCf8=
+github.com/to404hanga/pkg404 v0.0.10 h1:47NQpteKAADOXZ6KmdAEDzr8+var2yHBWol1ulQ/ibY=
+github.com/to404hanga/pkg404 v0.0.10/go.mod h1:fegHTqhjoNQabeTu7z36x+Pp564Y6XW6AFg3dQGxCf8=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
