@@ -49,6 +49,7 @@ func InitWebServer() *App {
 		// interactiveSvcSet, // 微服务迁移时才需要这个
 		// ioc.InitIntrClient, // 微服务迁移时用这个，迁移完用 V1
 		ioc.InitIntrClientV1,
+		ioc.InitRewardClient,
 		rankingSvcSet,
 		ioc.InitJobs,
 		ioc.InitRankingJob,
@@ -77,6 +78,7 @@ func InitWebServer() *App {
 		// handler 部分
 		web.NewUserHandler,
 		web.NewArticleHandler,
+		web.NewRewardHandler,
 		ijwt.NewRedisJWTHandler,
 		web.NewOAuth2WechatHandler,
 		ioc.InitGinMiddlewares,

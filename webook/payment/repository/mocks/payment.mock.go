@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 	time "time"
 	domain "webook/payment/domain"
+	repository "webook/payment/repository"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -78,6 +79,20 @@ func (m *MockPaymentRepository) GetPayment(ctx context.Context, bizTradeNO strin
 func (mr *MockPaymentRepositoryMockRecorder) GetPayment(ctx, bizTradeNO interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPayment", reflect.TypeOf((*MockPaymentRepository)(nil).GetPayment), ctx, bizTradeNO)
+}
+
+// Transaction mocks base method.
+func (m *MockPaymentRepository) Transaction(ctx context.Context, cb func(*repository.PaymentGormRepository, *repository.LocalMsgGormRepository) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Transaction", ctx, cb)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Transaction indicates an expected call of Transaction.
+func (mr *MockPaymentRepositoryMockRecorder) Transaction(ctx, cb interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transaction", reflect.TypeOf((*MockPaymentRepository)(nil).Transaction), ctx, cb)
 }
 
 // UpdatePayment mocks base method.

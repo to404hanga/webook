@@ -24,3 +24,8 @@ const (
 
 	WechatInternalServerError = 503001 // 统一的微信模块的系统错误
 )
+
+// Reward 相关
+const (
+	RewardInternalServerError = 504001 // 统一的打赏模块系统错误
+)

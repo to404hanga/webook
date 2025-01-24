@@ -7,7 +7,7 @@ import (
 	"webook/payment/domain"
 )
 
-//go:generate mockgen -source=./types.go -package=daomocks -destination=./mocks/types.mock.go PaymentDAO
+//go:generate mockgen -source=./types.go -package=daomocks -destination=./mocks/payment.mock.go PaymentDAO
 type PaymentDAO interface {
 	Insert(ctx context.Context, pmt Payment) error
 	UpdateTxnIDAndStatus(ctx context.Context, bizTradeNo, txnID string, status domain.PaymentStatus) error
@@ -26,3 +26,24 @@ type Payment struct {
 	UpdateTime  int64
 	CreateTime  int64
 }
+
+//go:generate mockgen -source=./types.go -package=daomocks -destination=./mocks/local_msg.mock.go LocalMsgDAO
+type LocalMsgDAO interface {
+	AddMsg(ctx context.Context, msg Msg) (int64, error)
+	UpdateStatus(ctx context.Context, id int64, status uint8) error
+}
+
+type Msg struct {
+	Id         int64 `gorm:"primaryKey,autoIncrement"`
+	Content    string
+	Status     uint8
+	CreateTime int64
+	UpdateTime int64 `gorm:"index"`
+}
+
+const (
+	MsgStatusUnknown uint8 = iota
+	MsgStatusInit
+	MsgStatusSuccess
+	MsgStatusFailed
+)

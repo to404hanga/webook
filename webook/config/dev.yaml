@@ -19,3 +19,5 @@ grpc:
   client:
     intr: 
       addr: "etcd:///service/interactive"
+    reward:
+      addr: "etcd:///service/reward"

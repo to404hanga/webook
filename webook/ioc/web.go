@@ -18,15 +18,13 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
-func InitWebServer(mdls []gin.HandlerFunc,
-	userHdl *web.UserHandler,
-	artHdl *web.ArticleHandler,
-	wechatHdl *web.OAuth2WechatHandler) *gin.Engine {
+func InitWebServer(mdls []gin.HandlerFunc, userHdl *web.UserHandler, artHdl *web.ArticleHandler, wechatHdl *web.OAuth2WechatHandler, rewardHdl *web.RewardHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(mdls...)
 	userHdl.RegisterRoutes(server)
 	wechatHdl.RegisterRoutes(server)
 	artHdl.RegisterRoutes(server)
+	rewardHdl.RegisterRoutes(server)
 	return server
 }
 

@@ -2,7 +2,7 @@ package wechat
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"time"
 	"webook/payment/domain"
@@ -15,17 +15,16 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
 )
 
-var errUnknownTransactionState = errors.New("未知的微信事务状态")
-
-type NativePaymentService struct {
+type NativePaymentServiceV1 struct {
 	baseNativePaymentService
-	repo repository.PaymentRepository
+	repo    *repository.PaymentGormRepository
+	msgRepo *repository.LocalMsgGormRepository
 }
 
-var _ PaymentService = (*NativePaymentService)(nil)
+var _ PaymentService = (*NativePaymentServiceV1)(nil)
 
-func NewNativePaymentService(appID, mchID string, producer events.Producer, repo repository.PaymentRepository, svc *native.NativeApiService, l logger.Logger) *NativePaymentService {
-	return &NativePaymentService{
+func NewNativePaymentServiceV1(appID, mchID string, producer events.Producer, repo *repository.PaymentGormRepository, msgRepo *repository.LocalMsgGormRepository, svc *native.NativeApiService, l logger.Logger) *NativePaymentServiceV1 {
+	return &NativePaymentServiceV1{
 		baseNativePaymentService: baseNativePaymentService{
 			appID:     appID,
 			mchID:     mchID,
@@ -42,11 +41,12 @@ func NewNativePaymentService(appID, mchID string, producer events.Producer, repo
 				"REFUND":   domain.PaymentStatusRefund,
 			},
 		},
-		repo: repo,
+		repo:    repo,
+		msgRepo: msgRepo,
 	}
 }
 
-func (n *NativePaymentService) Prepay(ctx context.Context, pmt domain.Payment) (string, error) {
+func (n *NativePaymentServiceV1) Prepay(ctx context.Context, pmt domain.Payment) (string, error) {
 	err := n.repo.AddPayment(ctx, pmt)
 	if err != nil {
 		return "", err
@@ -68,7 +68,7 @@ func (n *NativePaymentService) Prepay(ctx context.Context, pmt domain.Payment) (
 	return *resp.CodeUrl, nil
 }
 
-func (n *NativePaymentService) SyncWechatInfo(ctx context.Context, bizTradeNO string) error {
+func (n *NativePaymentServiceV1) SyncWechatInfo(ctx context.Context, bizTradeNO string) error {
 	// 对账
 	txn, _, err := n.svc.QueryOrderByOutTradeNo(ctx, native.QueryOrderByOutTradeNoRequest{
 		OutTradeNo: core.String(bizTradeNO),
@@ -80,37 +80,59 @@ func (n *NativePaymentService) SyncWechatInfo(ctx context.Context, bizTradeNO st
 	return n.updateByTxn(ctx, txn)
 }
 
-func (n *NativePaymentService) FindExpiredPayment(ctx context.Context, limit, offset int, t time.Time) ([]domain.Payment, error) {
+func (n *NativePaymentServiceV1) FindExpiredPayment(ctx context.Context, limit, offset int, t time.Time) ([]domain.Payment, error) {
 	return n.repo.FindExpiredPayment(ctx, limit, offset, t)
 }
 
-func (n *NativePaymentService) GetPayment(ctx context.Context, bizTradeId string) (domain.Payment, error) {
+func (n *NativePaymentServiceV1) GetPayment(ctx context.Context, bizTradeId string) (domain.Payment, error) {
 	return n.repo.GetPayment(ctx, bizTradeId)
 }
 
-func (n *NativePaymentService) HandleCallBack(ctx context.Context, txn *payments.Transaction) error {
+func (n *NativePaymentServiceV1) HandleCallBack(ctx context.Context, txn *payments.Transaction) error {
 	return n.updateByTxn(ctx, txn)
 }
 
-func (n *NativePaymentService) updateByTxn(ctx context.Context, txn *payments.Transaction) error {
+// updateByTxn 确保消息至少成功发送一次的版本
+func (n *NativePaymentServiceV1) updateByTxn(ctx context.Context, txn *payments.Transaction) error {
 	status, ok := n.nativeCBTypeToStatus[*txn.TradeState]
 	if !ok {
 		return fmt.Errorf("%w, 微信的状态是 %s", errUnknownTransactionState, *txn.TradeState)
 	}
-	err := n.repo.UpdatePayment(ctx, domain.Payment{
-		TxnID:      *txn.TransactionId,
+	evt := events.PaymentEvent{
 		BizTradeNO: *txn.OutTradeNo,
-		Status:     status,
+		Status:     status.AsUint8(),
+	}
+	var msgId int64
+	err := n.repo.Transaction(ctx, func(pmt *repository.PaymentGormRepository, msg *repository.LocalMsgGormRepository) error {
+		er := pmt.UpdatePayment(ctx, domain.Payment{
+			TxnID:      *txn.TransactionId,
+			BizTradeNO: *txn.OutTradeNo,
+			Status:     status,
+		})
+		if er != nil {
+			return er
+		}
+		evtData, er := json.Marshal(evt)
+		if er != nil {
+			return er
+		}
+		msgId, er = msg.AddMsg(ctx, string(evtData))
+		return er
 	})
 	if err != nil {
 		return err
 	}
-	err = n.producer.ProducePaymentEvent(ctx, events.PaymentEvent{
-		BizTradeNO: *txn.OutTradeNo,
-		Status:     status.AsUint8(),
-	})
+
+	err = n.producer.ProducePaymentEvent(ctx, evt)
 	if err != nil {
 		n.l.Error("发送支付事件失败", logger.Error(err), logger.String("biz_trade_no", *txn.OutTradeNo))
+		return nil
+	}
+
+	// 更新本地消息表状态
+	err = n.msgRepo.MarkSuccess(ctx, msgId)
+	if err != nil {
+		n.l.Error("标记本地消息表状态为成功失败", logger.Error(err), logger.Int64("msg_id", msgId), logger.String("biz_trade_no", *txn.OutTradeNo))
 	}
 	return nil
 }
