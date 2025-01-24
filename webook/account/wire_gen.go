@@ -10,6 +10,7 @@ import (
 	"webook/account/grpc"
 	"webook/account/ioc"
 	"webook/account/repository"
+	"webook/account/repository/cache"
 	"webook/account/repository/dao"
 	"webook/account/service"
 	"webook/pkg_local/wego"
@@ -20,11 +21,13 @@ import (
 func Init() *wego.App {
 	db := ioc.InitDB()
 	accountDAO := dao.NewCreditGormDAO(db)
-	accountRepository := repository.NewAccountRepository(accountDAO)
-	accountService := service.NewAccountService(accountRepository)
+	cmdable := ioc.InitRedis()
+	accountCache := cache.NewAccountRedisCache(cmdable)
+	accountRepository := repository.NewAccountRepository(accountDAO, accountCache)
+	logger := ioc.InitLogger()
+	accountService := service.NewAccountService(accountRepository, logger)
 	accountServiceServer := grpc.NewAccountServiceServer(accountService)
 	client := ioc.InitEtcdClient()
-	logger := ioc.InitLogger()
 	server := ioc.InitGrpcxServer(accountServiceServer, client, logger)
 	app := &wego.App{
 		GRPCServer: server,

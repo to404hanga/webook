@@ -48,3 +48,31 @@ func (mr *MockAccountRepositoryMockRecorder) AddCredit(ctx, c interface{}) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCredit", reflect.TypeOf((*MockAccountRepository)(nil).AddCredit), ctx, c)
 }
+
+// CheckUnique mocks base method.
+func (m *MockAccountRepository) CheckUnique(ctx context.Context, c domain.Credit) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckUnique", ctx, c)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckUnique indicates an expected call of CheckUnique.
+func (mr *MockAccountRepositoryMockRecorder) CheckUnique(ctx, c interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUnique", reflect.TypeOf((*MockAccountRepository)(nil).CheckUnique), ctx, c)
+}
+
+// SetUnique mocks base method.
+func (m *MockAccountRepository) SetUnique(ctx context.Context, c domain.Credit) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetUnique", ctx, c)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetUnique indicates an expected call of SetUnique.
+func (mr *MockAccountRepositoryMockRecorder) SetUnique(ctx, c interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUnique", reflect.TypeOf((*MockAccountRepository)(nil).SetUnique), ctx, c)
+}

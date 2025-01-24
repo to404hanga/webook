@@ -6,6 +6,7 @@ import (
 	"webook/account/grpc"
 	"webook/account/ioc"
 	"webook/account/repository"
+	"webook/account/repository/cache"
 	"webook/account/repository/dao"
 	"webook/account/service"
 	"webook/pkg_local/wego"
@@ -19,6 +20,8 @@ func Init() *wego.App {
 		ioc.InitLogger,
 		ioc.InitEtcdClient,
 		ioc.InitGrpcxServer,
+		ioc.InitRedis,
+		cache.NewAccountRedisCache,
 		dao.NewCreditGormDAO,
 		repository.NewAccountRepository,
 		service.NewAccountService,
