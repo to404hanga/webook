@@ -14,7 +14,7 @@ func NewGrpcxServer(intrSvc *grpc2.InteractiveServiceServer, ecli *clientv3.Clie
 	type Config struct {
 		EtcdAddr string `yaml:"etcdAddr"`
 		Port     int    `yaml:"port"`
-		EtcdTTL  int64  `yaml:"name"`
+		EtcdTTL  int64  `yaml:"etcdTTL"`
 	}
 	s := grpc.NewServer()
 	intrSvc.Register(s)

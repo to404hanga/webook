@@ -12,10 +12,10 @@ import (
 	"webook/internal/service"
 	"webook/internal/web/jwt"
 
-	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
 	"github.com/to404hanga/pkg404/ginx"
 	"github.com/to404hanga/pkg404/logger"
+	"github.com/to404hanga/pkg404/stl/transform"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -162,7 +162,7 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, ginx.Result{
-		Data: slice.Map[domain.Article, ArticleVo](arts, func(idx int, src domain.Article) ArticleVo {
+		Data: transform.SliceFromSlice[domain.Article, ArticleVo](arts, func(src domain.Article) ArticleVo {
 			return ArticleVo{
 				Id:         src.Id,
 				Title:      src.Title,

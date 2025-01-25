@@ -5,7 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/viper"
-	"github.com/to404hanga/pkg404/gormx"
+	prometheus2 "github.com/to404hanga/pkg404/gormx/callbacks/prometheus"
 	"github.com/to404hanga/pkg404/gormx/connpool"
 	"github.com/to404hanga/pkg404/logger"
 	"gorm.io/driver/mysql"
@@ -67,7 +67,7 @@ func initDB(key string) *gorm.DB {
 		panic(err)
 	}
 
-	cb := gormx.NewCallbacks(prometheus.SummaryOpts{
+	cb := prometheus2.NewCallbacks(prometheus.SummaryOpts{
 		Namespace: "to404hanga_lsh",
 		Subsystem: "webook",
 		Name:      "gorm_db_" + key,
@@ -84,7 +84,7 @@ func initDB(key string) *gorm.DB {
 		},
 	})
 
-	err = db.Use(cb)
+	err = cb.Initialize(db)
 	if err != nil {
 		panic(err)
 	}

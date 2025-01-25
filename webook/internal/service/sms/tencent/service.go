@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/ecodeclub/ekit"
-	"github.com/ecodeclub/ekit/slice"
 	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"
 	"github.com/to404hanga/pkg404/logger"
+	"github.com/to404hanga/pkg404/stl/transform"
 )
 
 type Service struct {
@@ -56,7 +56,7 @@ func (s *Service) Send(ctx context.Context, tplId string, args []string, numbers
 }
 
 func (s *Service) toPtrSlice(data []string) []*string {
-	return slice.Map[string, *string](data, func(idx int, src string) *string {
-		return &src
+	return transform.SliceFromSlice[string, *string](data, func(s string) *string {
+		return &s
 	})
 }
