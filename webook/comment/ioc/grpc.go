@@ -6,24 +6,29 @@ import (
 	"github.com/spf13/viper"
 	"github.com/to404hanga/pkg404/grpcx"
 	"github.com/to404hanga/pkg404/logger"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 )
 
-func InitGrpcxServer(cmt *grpc2.CommentServiceServer, l logger.Logger) *grpcx.Server {
+func InitGrpcxServer(cmt *grpc2.CommentServiceServer, ecli *clientv3.Client, l logger.Logger) *grpcx.Server {
 	type Config struct {
-		Port int `yaml:"port"`
+		Port     int    `yaml:"port"`
+		EtcdAddr string `yaml:"etcdAddr"`
+		EtcdTTL  int64  `yaml:"etcdTTL"`
 	}
-	s := grpc.NewServer()
-	cmt.Register(s)
 	var cfg Config
 	err := viper.UnmarshalKey("grpc.server", &cfg)
 	if err != nil {
 		panic(err)
 	}
+	server := grpc.NewServer()
+	cmt.Register(server)
 	return &grpcx.Server{
-		Server: s,
-		Port:   cfg.Port,
-		Name:   "comment",
-		L:      l,
+		Server:     server,
+		Port:       cfg.Port,
+		Name:       "comment",
+		L:          l,
+		EtcdTTL:    cfg.EtcdTTL,
+		EtcdClient: ecli,
 	}
 }

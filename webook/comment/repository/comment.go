@@ -37,13 +37,14 @@ func (c *CachedCommentRepository) FindByBiz(ctx context.Context, biz string, biz
 	var eg errgroup.Group
 	downgraded := ctx.Value("downgraded") == "true"
 	vec.ForEach(func(val dao.Comment) {
-		cmt := c.toDomain(val)
+		newVal := val
+		cmt := c.toDomain(newVal)
 		res = append(res, cmt)
 		if !downgraded {
 			eg.Go(func() error {
 				// 只展示 3 条
 				cmt.Children = make([]domain.Comment, 0, 3)
-				rs, err := c.dao.FindRepliesByParentId(ctx, val.Id, 3, 0)
+				rs, err := c.dao.FindRepliesByParentId(ctx, newVal.Id, 3, 0)
 				if err != nil {
 					c.l.Error("查询子评论失败", logger.Error(err))
 					return nil

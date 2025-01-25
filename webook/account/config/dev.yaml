@@ -4,6 +4,7 @@ db:
 grpc:
   server:
     port: 8100
+    etcdAddr: localhost:2379
     etcdTTL: 60
   
 etcd:

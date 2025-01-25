@@ -21,6 +21,7 @@ var svcProviderSet = wire.NewSet(
 
 var thirdProvider = wire.NewSet(
 	ioc.InitLogger,
+	ioc.InitEtcdClient,
 	ioc.InitDB,
 )
 
