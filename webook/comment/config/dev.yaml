@@ -1,0 +1,5 @@
+db:
+  dsn: "root:123456@tcp(localhost:3307)/webook_comment"
+
+grpc:
+  port: 8091
