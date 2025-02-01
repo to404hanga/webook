@@ -14,6 +14,8 @@ import (
 )
 
 var svcProviderSet = wire.NewSet(
+	dao.NewLikeElasticSearchDAO,
+	dao.NewCollectElasticSearchDAO,
 	dao.NewUserElasticSearchDAO,
 	dao.NewArticleElasticSearchDAO,
 	dao.NewAnyElasticSearchDAO,
@@ -40,6 +42,7 @@ func Init() *App {
 		grpc.NewSearchServiceServer,
 		events.NewUserConsumer,
 		events.NewArticleConsumer,
+		events.NewInteractiveConsumer,
 		ioc.InitGrpcxServer,
 		ioc.NewConsumers,
 		wire.Struct(new(App), "*"),

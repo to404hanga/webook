@@ -10,6 +10,7 @@ type SyncService interface {
 	InputArticle(ctx context.Context, article domain.Article) error
 	InputUser(ctx context.Context, user domain.User) error
 	InputAny(ctx context.Context, indexName, docId, data string) error
+	Delete(ctx context.Context, indexName, docId string) error
 }
 
 //go:generate mockgen -source=./types.go -destination=./mocks/search.mock.go -package=svcmocks SearchService

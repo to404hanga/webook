@@ -22,6 +22,7 @@ func InitESClient() *elastic.Client {
 	const timeout = 100 * time.Second
 	opts := []elastic.ClientOptionFunc{
 		elastic.SetURL(cfg.Url),
+		elastic.SetSniff(cfg.Sniff),
 		elastic.SetHealthcheckTimeoutStartup(timeout),
 	}
 	client, err := elastic.NewClient(opts...)

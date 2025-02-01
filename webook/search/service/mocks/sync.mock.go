@@ -35,6 +35,20 @@ func (m *MockSyncService) EXPECT() *MockSyncServiceMockRecorder {
 	return m.recorder
 }
 
+// Delete mocks base method.
+func (m *MockSyncService) Delete(ctx context.Context, indexName, docId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, indexName, docId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockSyncServiceMockRecorder) Delete(ctx, indexName, docId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSyncService)(nil).Delete), ctx, indexName, docId)
+}
+
 // InputAny mocks base method.
 func (m *MockSyncService) InputAny(ctx context.Context, indexName, docId, data string) error {
 	m.ctrl.T.Helper()

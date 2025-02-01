@@ -20,4 +20,5 @@ type ArticleRepository interface {
 //go:generate mockgen -source=./types.go -package=repomocks -destination=./mocks/any.mock.go AnyRepository
 type AnyRepository interface {
 	Input(ctx context.Context, index, docId, data string) error
+	Delete(ctx context.Context, index, docId string) error
 }

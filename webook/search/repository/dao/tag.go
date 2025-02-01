@@ -40,10 +40,3 @@ func (t *TagElasticSearchDAO) Search(ctx context.Context, uid int64, biz string,
 	}
 	return res, nil
 }
-
-type BizTags struct {
-	Uid   int64    `json:"uid"`
-	Biz   string   `json:"biz"`
-	BizId int64    `json:"biz_id"`
-	Tags  []string `json:"tags"`
-}

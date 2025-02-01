@@ -50,16 +50,16 @@ func (mr *MockArticleDAOMockRecorder) InputArticle(ctx, article interface{}) *go
 }
 
 // Search mocks base method.
-func (m *MockArticleDAO) Search(ctx context.Context, articleIds []int64, keywords []string) ([]dao.Article, error) {
+func (m *MockArticleDAO) Search(ctx context.Context, req dao.SearchReq, keywords []string) ([]dao.Article, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, articleIds, keywords)
+	ret := m.ctrl.Call(m, "Search", ctx, req, keywords)
 	ret0, _ := ret[0].([]dao.Article)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Search indicates an expected call of Search.
-func (mr *MockArticleDAOMockRecorder) Search(ctx, articleIds, keywords interface{}) *gomock.Call {
+func (mr *MockArticleDAOMockRecorder) Search(ctx, req, keywords interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockArticleDAO)(nil).Search), ctx, articleIds, keywords)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockArticleDAO)(nil).Search), ctx, req, keywords)
 }

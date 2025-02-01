@@ -24,7 +24,9 @@ func Init() *App {
 	userRepository := repository.NewUserRepository(userDAO)
 	articleDAO := dao.NewArticleElasticSearchDAO(client)
 	tagDAO := dao.NewTagElasticSearchDAO(client)
-	articleRepository := repository.NewArticleRepository(articleDAO, tagDAO)
+	collectDAO := dao.NewCollectElasticSearchDAO(client)
+	likeDAO := dao.NewLikeElasticSearchDAO(client)
+	articleRepository := repository.NewArticleRepository(articleDAO, tagDAO, collectDAO, likeDAO)
 	anyDAO := dao.NewAnyElasticSearchDAO(client)
 	anyRepository := repository.NewAnyRepository(anyDAO)
 	syncService := service.NewSyncService(userRepository, articleRepository, anyRepository)
@@ -37,7 +39,8 @@ func Init() *App {
 	saramaClient := ioc.InitKafka()
 	articleConsumer := events.NewArticleConsumer(syncService, saramaClient, logger)
 	userConsumer := events.NewUserConsumer(syncService, saramaClient, logger)
-	v := ioc.NewConsumers(articleConsumer, userConsumer)
+	interactiveConsumer := events.NewInteractiveConsumer(saramaClient, logger, syncService)
+	v := ioc.NewConsumers(articleConsumer, userConsumer, interactiveConsumer)
 	app := &App{
 		server:    server,
 		consumers: v,
@@ -47,6 +50,6 @@ func Init() *App {
 
 // wire.go:
 
-var svcProviderSet = wire.NewSet(dao.NewUserElasticSearchDAO, dao.NewArticleElasticSearchDAO, dao.NewAnyElasticSearchDAO, dao.NewTagElasticSearchDAO, repository.NewUserRepository, repository.NewArticleRepository, repository.NewAnyRepository, service.NewSyncService, service.NewSearchService)
+var svcProviderSet = wire.NewSet(dao.NewLikeElasticSearchDAO, dao.NewCollectElasticSearchDAO, dao.NewUserElasticSearchDAO, dao.NewArticleElasticSearchDAO, dao.NewAnyElasticSearchDAO, dao.NewTagElasticSearchDAO, repository.NewUserRepository, repository.NewArticleRepository, repository.NewAnyRepository, service.NewSyncService, service.NewSearchService)
 
 var thirdProvider = wire.NewSet(ioc.InitLogger, ioc.InitESClient, ioc.InitEtcdClient, ioc.InitKafka)

@@ -20,3 +20,7 @@ func NewAnyRepository(dao dao.AnyDAO) AnyRepository {
 func (a *anyRepository) Input(ctx context.Context, index, docId, data string) error {
 	return a.dao.Input(ctx, index, docId, data)
 }
+
+func (a *anyRepository) Delete(ctx context.Context, index, docId string) error {
+	return a.dao.Delete(ctx, index, docId)
+}

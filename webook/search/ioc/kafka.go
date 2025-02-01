@@ -25,9 +25,10 @@ func InitKafka() sarama.Client {
 	return client
 }
 
-func NewConsumers(articleConsumer *events.ArticleConsumer, userConsumer *events.UserConsumer) []events.Consumer {
+func NewConsumers(articleConsumer *events.ArticleConsumer, userConsumer *events.UserConsumer, interConsumer *events.InteractiveConsumer) []events.Consumer {
 	return []events.Consumer{
 		articleConsumer,
 		userConsumer,
+		interConsumer,
 	}
 }

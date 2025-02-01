@@ -34,6 +34,20 @@ func (m *MockAnyDAO) EXPECT() *MockAnyDAOMockRecorder {
 	return m.recorder
 }
 
+// Delete mocks base method.
+func (m *MockAnyDAO) Delete(ctx context.Context, index, docId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, index, docId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockAnyDAOMockRecorder) Delete(ctx, index, docId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAnyDAO)(nil).Delete), ctx, index, docId)
+}
+
 // Input mocks base method.
 func (m *MockAnyDAO) Input(ctx context.Context, index, docId, data string) error {
 	m.ctrl.T.Helper()

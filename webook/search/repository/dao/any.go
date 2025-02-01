@@ -20,3 +20,8 @@ func (a *AnyElasticSearchDAO) Input(ctx context.Context, index, docId, data stri
 	_, err := a.client.Index().Index(index).Id(docId).BodyString(data).Do(ctx)
 	return err
 }
+
+func (a *AnyElasticSearchDAO) Delete(ctx context.Context, index, docId string) error {
+	_, err := a.client.Delete().Index(index).Id(docId).Do(ctx)
+	return err
+}

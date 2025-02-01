@@ -33,3 +33,7 @@ func (s *syncService) InputArticle(ctx context.Context, article domain.Article) 
 func (s *syncService) InputUser(ctx context.Context, user domain.User) error {
 	return s.userRepo.InputUser(ctx, user)
 }
+
+func (s *syncService) Delete(ctx context.Context, indexName, docId string) error {
+	return s.anyRepo.Delete(ctx, indexName, docId)
+}
