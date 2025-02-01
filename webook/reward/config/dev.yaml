@@ -1,5 +1,5 @@
 db:
-  dsn: "root:123456@tcp(localhost:3307)/webook_reward"
+  dsn: "root:123456@tcp(localhost:3306)/webook_reward"
 
 grpc:
   server:

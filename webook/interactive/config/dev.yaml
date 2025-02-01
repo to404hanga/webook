@@ -6,9 +6,9 @@ redis:
 
 db:
   src:
-    dsn: "root:123456@tcp(localhost:3307)/webook"
+    dsn: "root:123456@tcp(localhost:3306)/webook"
   dst:
-    dsn: "root:123456@tcp(localhost:3307)/webook_intr"
+    dsn: "root:123456@tcp(localhost:3306)/webook_intr"
 
 kafka:
   addr:

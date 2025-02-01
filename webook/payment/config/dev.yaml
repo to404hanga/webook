@@ -2,7 +2,7 @@ http:
   addr: ":8070"
 
 db:
-  dsn: "root:123456@tcp(localhost:3307)/webook_payment"
+  dsn: "root:123456@tcp(localhost:3306)/webook_payment"
 
 kafka:
   addrs:

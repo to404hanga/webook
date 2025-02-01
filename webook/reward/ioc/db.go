@@ -13,7 +13,7 @@ func InitDB() *gorm.DB {
 	type Config struct {
 		DSN string `yaml:"dsn"`
 	}
-	c := Config{DSN: "root:123456@tcp(localhost:3307)/webook_reward"}
+	c := Config{DSN: "root:123456@tcp(localhost:3306)/webook_reward"}
 	err := viper.UnmarshalKey("db", &c)
 	if err != nil {
 		panic(fmt.Errorf("初始化配置失败 %v，原因 %v", c, err))

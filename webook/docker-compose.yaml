@@ -12,24 +12,27 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=123456
     ports:
       - 27017:27017
-  # # 服务名: mysql8
-  # mysql8:
-  #   # 镜像
-  #   image: mysql:8.0
-  #   # 重启策略
-  #   restart: always
-  #   # 命令参数
-  #   command: --default-authentication-plugin=mysql_native_password
-  #   # 环境变量
-  #   environment:
-  #     # mysql root 用户密码
-  #     MYSQL_ROOT_PASSWORD: root
-  #   volumes:
-  #     # 初始化脚本
-  #     - ./script/mysql/:/docker-entrypoint-initdb.d/
-  #   ports:
-  #     # docker 外部通过 13316 端口访问
-  #     - 13316:3306
+      
+  mysql8:
+    # 镜像
+    image: mysql:8.0
+    # 重启策略
+    restart: always
+    # 命令参数
+    command: 
+      - --default-authentication-plugin=mysql_native_password
+      - --binlog-format=ROW
+      - --server-id=1
+    # 环境变量
+    environment:
+      # mysql root 用户密码
+      MYSQL_ROOT_PASSWORD: 123456
+    volumes:
+      # 初始化脚本
+      - ./script/mysql/:/docker-entrypoint-initdb.d/
+    ports:
+      # docker 外部通过 3306 端口访问
+      - 3306:3306
   
   # # redis
   # redis:
@@ -47,6 +50,7 @@ services:
   #     - ALLOW_NONE_AUTHENTICATION=yes
   #   ports:
   #     - "12379:2379"
+
   kafka:
     image: 'bitnami/kafka:3.6.0'
     ports:
@@ -54,7 +58,9 @@ services:
       - '9094:9094'
     environment:
       - KAFKA_CFG_NODE_ID=0
-#      - 允许自动创建 topic，线上不要开启
+      # - 三个分区
+      - KAFKA_CREATE_TOPICS=webook_binlog:3:1
+      # - 允许自动创建 topic，线上不要开启
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_PROCESS_ROLES=controller,broker
       - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://:9093,EXTERNAL://0.0.0.0:9094
@@ -106,3 +112,18 @@ services:
       - i18n.locale=zh-CN
     ports:
       - 5601:5601
+
+  canal:
+    image: canal/canal-server
+    environment:
+      - CANAL_IP=canal-server
+      - CANAL_PORT=11111
+      - CANAL_DESTINATION=example
+    depends_on:
+      - mysql8
+      - kafka
+    ports:
+      - 11111:11111
+    volumes:
+      - ./script/canal/webook/instance.properties:/home/admin/canal-server/conf/webook/instance.properties
+      - ./script/canal/canal.properties:/home/admin/canal-server/conf/canal.properties
