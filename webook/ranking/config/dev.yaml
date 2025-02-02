@@ -1,0 +1,17 @@
+redis:
+  addr: "localhost:6379"
+
+grpc:
+  server:
+    port: 8102
+    etcdAddr: "localhost:2379"
+    etcdTTL: 60
+  client:
+    intr:
+      addr: ":8094"
+    article:
+      addr: ":8097"
+
+etcd:
+  endpoints:
+    - "localhost:2379"
