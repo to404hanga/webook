@@ -1,0 +1,20 @@
+grpc:
+  server:
+    port: 8101
+    etcdAddr: "localhost:2379"
+    etcdTTL: 60
+
+etcd:
+  endpoints:
+    - "localhost:2379"
+
+wechatConf:
+  appId: "xxxxxx"
+  appSecret: "xxxxxx"
+
+prometheus:
+  namespace: "to404hanga_lsh"
+  subsystem: "webook"
+  name: "oauth2"
+  instanceId: "my-instance-1"
+  help: "oauth2 微信登陆"
