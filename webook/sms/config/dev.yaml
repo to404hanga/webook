@@ -1,0 +1,16 @@
+db:
+  dsn: "root:123456@tcp(localhost:3306)/)/webook_sms"
+
+grpc:
+  server:
+    addr: 8096
+    etcdAddr: "localhost:2379"
+    etcdTTL: 60
+
+etcd:
+  endpoints:
+    - "localhost:2379"
+
+tencentSms:
+  secretId: "xxxxxxx"
+  secretKey: "xxxxxx"
