@@ -13,8 +13,9 @@ import (
 
 func InitGrpcServer(wechatSvc *grpc2.WechatServiceServer, ecli *clientv3.Client, l logger.Logger) *grpcx.Server {
 	type Config struct {
-		Port    int   `yaml:"port"`
-		EtcdTTL int64 `yaml:"etcdTTL"`
+		Port     int    `yaml:"port"`
+		EtcdTTL  int64  `yaml:"etcdTTL"`
+		EtcdAddr string `yaml:"etcdAddr"`
 	}
 	var cfg Config
 	err := viper.UnmarshalKey("grpc.server", &cfg)

@@ -59,10 +59,7 @@ func (c *CachedInteractiveRepository) Get(ctx context.Context, biz string, id in
 	res := c.toDomain(ie)
 	err = c.cache.Set(ctx, biz, id, res)
 	if err != nil {
-		c.l.Error("回写缓存失败",
-			logger.String("biz", biz),
-			logger.Int64("bizId", id),
-			logger.Error(err))
+		c.l.Error("回写缓存失败", logger.String("biz", biz), logger.Int64("bizId", id), logger.Error(err))
 	}
 	return res, nil
 }
@@ -129,7 +126,7 @@ func (c *CachedInteractiveRepository) BatchIncrReadCnt(ctx context.Context, biz 
 		for i := 0; i < len(biz); i++ {
 			er := c.cache.IncrReadCntIfPresent(ctx, biz[i], bizId[i])
 			if er != nil {
-				// 记录日志
+				c.l.Error("缓存失败", logger.Error(err), logger.String("biz", biz[i]), logger.Int64("biz_id", bizId[i]))
 			}
 		}
 	}()
@@ -141,8 +138,6 @@ func (c *CachedInteractiveRepository) IncrReadCnt(ctx context.Context, biz strin
 	if err != nil {
 		return err
 	}
-	// 你要更新缓存了
-	// 部分失败问题 —— 数据不一致
 	return c.cache.IncrReadCntIfPresent(ctx, biz, bizId)
 }
 

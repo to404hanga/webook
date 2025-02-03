@@ -19,4 +19,4 @@ grpc:
     etcdTTL: 60
   client:
     user:
-      addr: ":8091"
+      addr: ":8105"

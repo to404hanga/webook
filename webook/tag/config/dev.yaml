@@ -6,11 +6,11 @@ redis:
 
 grpc:
   server:
-    port: 8097
+    port: 8098
     etcdAddr: "localhost:2379"
     etcdTTL: 60
   client:
-    port: 8091
+    port: 8095
     etcdAddr: "localhost:2379"
     etcdTTL: 60
 
