@@ -1,0 +1,15 @@
+grpc:
+  server:
+    port: 8104
+    etcdTTL: 60
+    etcdAddr: "localhost:2379"
+  client:
+    sms:
+      target: "etcd:///service/sms"
+
+redis:
+  addr: "localhost:6379"
+
+etcd:
+  endpoints:
+    - "localhost:2379"
