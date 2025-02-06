@@ -41,6 +41,24 @@ func (t *TableStoreFollowRelationDAO) FollowRelationList(ctx context.Context, fo
 	return followRelations, nil
 }
 
+func (t *TableStoreFollowRelationDAO) FansList(ctx context.Context, followee int64, limit, offset int) ([]FollowRelation, error) {
+	req := &tablestore.SQLQueryRequest{Query: fmt.Sprintf("SELECT id,follower,followee FROM %s WHERE followee=%d AND status=%d OFFSET %d LIMIT %d", FollowRelationTableName, followee, FollowRelationStatusActive, offset, limit)}
+	resp, err := t.client.SQLQuery(req)
+	if err != nil {
+		return nil, err
+	}
+	resultSet := resp.ResultSet
+	followRelations := make([]FollowRelation, 0, limit)
+	for resultSet.HasNext() {
+		row := resultSet.Next()
+		followRelation := FollowRelation{}
+		followRelation.Follower, _ = row.GetInt64ByName("follower")
+		followRelation.Followee, _ = row.GetInt64ByName("followee")
+		followRelations = append(followRelations, followRelation)
+	}
+	return followRelations, nil
+}
+
 func (t *TableStoreFollowRelationDAO) FollowRelationDetail(ctx context.Context, follower, followee int64) (FollowRelation, error) {
 	req := &tablestore.SQLQueryRequest{Query: fmt.Sprintf("SELECT id,follower,followee FROM %s WHERE follower=%d AND followee=%d AND status=%d", FollowRelationTableName, follower, followee, FollowRelationStatusActive)}
 	resp, err := t.client.SQLQuery(req)

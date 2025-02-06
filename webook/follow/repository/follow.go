@@ -34,6 +34,14 @@ func (repo *CachedFollowRepository) GetFollowee(ctx context.Context, follower in
 	return repo.genFollowRelationList(followerList), nil
 }
 
+func (repo *CachedFollowRepository) GetFollower(ctx context.Context, followee int64, limit, offset int) ([]domain.FollowRelation, error) {
+	followerList, err := repo.dao.FansList(ctx, followee, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	return repo.genFollowRelationList(followerList), nil
+}
+
 func (repo *CachedFollowRepository) FollowInfo(ctx context.Context, follower, followee int64) (domain.FollowRelation, error) {
 	c, err := repo.dao.FollowRelationDetail(ctx, follower, followee)
 	if err != nil {

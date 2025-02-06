@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FollowService_Follow_FullMethodName       = "/follow.v1.FollowService/Follow"
-	FollowService_CancelFollow_FullMethodName = "/follow.v1.FollowService/CancelFollow"
-	FollowService_GetFollowee_FullMethodName  = "/follow.v1.FollowService/GetFollowee"
-	FollowService_FollowInfo_FullMethodName   = "/follow.v1.FollowService/FollowInfo"
+	FollowService_Follow_FullMethodName          = "/follow.v1.FollowService/Follow"
+	FollowService_CancelFollow_FullMethodName    = "/follow.v1.FollowService/CancelFollow"
+	FollowService_GetFollowee_FullMethodName     = "/follow.v1.FollowService/GetFollowee"
+	FollowService_FollowInfo_FullMethodName      = "/follow.v1.FollowService/FollowInfo"
+	FollowService_GetFollower_FullMethodName     = "/follow.v1.FollowService/GetFollower"
+	FollowService_GetFollowStatic_FullMethodName = "/follow.v1.FollowService/GetFollowStatic"
 )
 
 // FollowServiceClient is the client API for FollowService service.
@@ -33,6 +35,8 @@ type FollowServiceClient interface {
 	CancelFollow(ctx context.Context, in *CancelFollowRequest, opts ...grpc.CallOption) (*CancelFollowResponse, error)
 	GetFollowee(ctx context.Context, in *GetFolloweeRequest, opts ...grpc.CallOption) (*GetFolloweeResponse, error)
 	FollowInfo(ctx context.Context, in *FollowInfoRequest, opts ...grpc.CallOption) (*FollowInfoResponse, error)
+	GetFollower(ctx context.Context, in *GetFollowerRequest, opts ...grpc.CallOption) (*GetFollowerResponse, error)
+	GetFollowStatic(ctx context.Context, in *GetFollowStaticRequest, opts ...grpc.CallOption) (*GetFollowStaticResponse, error)
 }
 
 type followServiceClient struct {
@@ -83,6 +87,26 @@ func (c *followServiceClient) FollowInfo(ctx context.Context, in *FollowInfoRequ
 	return out, nil
 }
 
+func (c *followServiceClient) GetFollower(ctx context.Context, in *GetFollowerRequest, opts ...grpc.CallOption) (*GetFollowerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFollowerResponse)
+	err := c.cc.Invoke(ctx, FollowService_GetFollower_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *followServiceClient) GetFollowStatic(ctx context.Context, in *GetFollowStaticRequest, opts ...grpc.CallOption) (*GetFollowStaticResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFollowStaticResponse)
+	err := c.cc.Invoke(ctx, FollowService_GetFollowStatic_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FollowServiceServer is the server API for FollowService service.
 // All implementations must embed UnimplementedFollowServiceServer
 // for forward compatibility.
@@ -91,6 +115,8 @@ type FollowServiceServer interface {
 	CancelFollow(context.Context, *CancelFollowRequest) (*CancelFollowResponse, error)
 	GetFollowee(context.Context, *GetFolloweeRequest) (*GetFolloweeResponse, error)
 	FollowInfo(context.Context, *FollowInfoRequest) (*FollowInfoResponse, error)
+	GetFollower(context.Context, *GetFollowerRequest) (*GetFollowerResponse, error)
+	GetFollowStatic(context.Context, *GetFollowStaticRequest) (*GetFollowStaticResponse, error)
 	mustEmbedUnimplementedFollowServiceServer()
 }
 
@@ -112,6 +138,12 @@ func (UnimplementedFollowServiceServer) GetFollowee(context.Context, *GetFollowe
 }
 func (UnimplementedFollowServiceServer) FollowInfo(context.Context, *FollowInfoRequest) (*FollowInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FollowInfo not implemented")
+}
+func (UnimplementedFollowServiceServer) GetFollower(context.Context, *GetFollowerRequest) (*GetFollowerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFollower not implemented")
+}
+func (UnimplementedFollowServiceServer) GetFollowStatic(context.Context, *GetFollowStaticRequest) (*GetFollowStaticResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFollowStatic not implemented")
 }
 func (UnimplementedFollowServiceServer) mustEmbedUnimplementedFollowServiceServer() {}
 func (UnimplementedFollowServiceServer) testEmbeddedByValue()                       {}
@@ -206,6 +238,42 @@ func _FollowService_FollowInfo_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FollowService_GetFollower_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFollowerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FollowServiceServer).GetFollower(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FollowService_GetFollower_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FollowServiceServer).GetFollower(ctx, req.(*GetFollowerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FollowService_GetFollowStatic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFollowStaticRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FollowServiceServer).GetFollowStatic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FollowService_GetFollowStatic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FollowServiceServer).GetFollowStatic(ctx, req.(*GetFollowStaticRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FollowService_ServiceDesc is the grpc.ServiceDesc for FollowService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +296,14 @@ var FollowService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FollowInfo",
 			Handler:    _FollowService_FollowInfo_Handler,
+		},
+		{
+			MethodName: "GetFollower",
+			Handler:    _FollowService_GetFollower_Handler,
+		},
+		{
+			MethodName: "GetFollowStatic",
+			Handler:    _FollowService_GetFollowStatic_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

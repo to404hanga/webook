@@ -52,6 +52,28 @@ func (f *FollowServiceServer) Follow(ctx context.Context, req *followv1.FollowRe
 	return &followv1.FollowResponse{}, err
 }
 
+func (f *FollowServiceServer) GetFollower(ctx context.Context, req *followv1.GetFollowerRequest) (*followv1.GetFollowerResponse, error) {
+	relationList, err := f.svc.GetFollower(ctx, req.GetFollowee(), int(req.GetLimit()), int(req.GetOffset()))
+	if err != nil {
+		return nil, err
+	}
+	return &followv1.GetFollowerResponse{
+		FollowRelations: transform.SliceFromSlice[domain.FollowRelation, *followv1.FollowRelation](relationList, func(fr domain.FollowRelation) *followv1.FollowRelation {
+			return f.convertToView(fr)
+		}),
+	}, nil
+}
+
+func (f *FollowServiceServer) GetFollowStatic(ctx context.Context, req *followv1.GetFollowStaticRequest) (*followv1.GetFollowStaticResponse, error) {
+	followStatic, err := f.svc.GetFollowStatic(ctx, req.GetFollowee())
+	return &followv1.GetFollowStaticResponse{
+		FollowStatic: &followv1.FollowStatic{
+			Followers: followStatic.Followers,
+			Followees: followStatic.Followees,
+		},
+	}, err
+}
+
 func (f *FollowServiceServer) CancelFollow(ctx context.Context, req *followv1.CancelFollowRequest) (*followv1.CancelFollowResponse, error) {
 	err := f.svc.CancelFollow(ctx, req.GetFollower(), req.GetFollowee())
 	return &followv1.CancelFollowResponse{}, err

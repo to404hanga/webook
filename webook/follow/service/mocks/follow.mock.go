@@ -78,6 +78,21 @@ func (mr *MockFollowRelationServiceMockRecorder) FollowInfo(ctx, follower, follo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FollowInfo", reflect.TypeOf((*MockFollowRelationService)(nil).FollowInfo), ctx, follower, followee)
 }
 
+// GetFollowStatic mocks base method.
+func (m *MockFollowRelationService) GetFollowStatic(ctx context.Context, followee int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFollowStatic", ctx, followee)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFollowStatic indicates an expected call of GetFollowStatic.
+func (mr *MockFollowRelationServiceMockRecorder) GetFollowStatic(ctx, followee interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFollowStatic", reflect.TypeOf((*MockFollowRelationService)(nil).GetFollowStatic), ctx, followee)
+}
+
 // GetFollowee mocks base method.
 func (m *MockFollowRelationService) GetFollowee(ctx context.Context, follower int64, limit, offset int) ([]domain.FollowRelation, error) {
 	m.ctrl.T.Helper()
@@ -91,4 +106,19 @@ func (m *MockFollowRelationService) GetFollowee(ctx context.Context, follower in
 func (mr *MockFollowRelationServiceMockRecorder) GetFollowee(ctx, follower, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFollowee", reflect.TypeOf((*MockFollowRelationService)(nil).GetFollowee), ctx, follower, limit, offset)
+}
+
+// GetFollower mocks base method.
+func (m *MockFollowRelationService) GetFollower(ctx context.Context, follower int64, limit, offset int) ([]domain.FollowRelation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFollower", ctx, follower, limit, offset)
+	ret0, _ := ret[0].([]domain.FollowRelation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFollower indicates an expected call of GetFollower.
+func (mr *MockFollowRelationServiceMockRecorder) GetFollower(ctx, follower, limit, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFollower", reflect.TypeOf((*MockFollowRelationService)(nil).GetFollower), ctx, follower, limit, offset)
 }

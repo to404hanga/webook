@@ -36,3 +36,11 @@ func (svc *followRelationService) Follow(ctx context.Context, follower, followee
 func (svc *followRelationService) CancelFollow(ctx context.Context, follower, followee int64) error {
 	return svc.repo.InactiveFollowRelation(ctx, follower, followee)
 }
+
+func (svc *followRelationService) GetFollower(ctx context.Context, followee int64, limit, offset int) ([]domain.FollowRelation, error) {
+	return svc.repo.GetFollower(ctx, followee, limit, offset)
+}
+
+func (svc *followRelationService) GetFollowStatic(ctx context.Context, followee int64) (domain.FollowStatics, error) {
+	return svc.repo.GetFollowStatics(ctx, followee)
+}

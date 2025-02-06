@@ -80,18 +80,18 @@ func (mr *MockFollowRepositoryMockRecorder) GetFollowStatics(ctx, uid interface{
 }
 
 // GetFollowee mocks base method.
-func (m *MockFollowRepository) GetFollowee(ctx context.Context, follower, followee int64, limit, offset int) ([]domain.FollowRelation, error) {
+func (m *MockFollowRepository) GetFollowee(ctx context.Context, follower int64, limit, offset int) ([]domain.FollowRelation, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFollowee", ctx, follower, followee, limit, offset)
+	ret := m.ctrl.Call(m, "GetFollowee", ctx, follower, limit, offset)
 	ret0, _ := ret[0].([]domain.FollowRelation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetFollowee indicates an expected call of GetFollowee.
-func (mr *MockFollowRepositoryMockRecorder) GetFollowee(ctx, follower, followee, limit, offset interface{}) *gomock.Call {
+func (mr *MockFollowRepositoryMockRecorder) GetFollowee(ctx, follower, limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFollowee", reflect.TypeOf((*MockFollowRepository)(nil).GetFollowee), ctx, follower, followee, limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFollowee", reflect.TypeOf((*MockFollowRepository)(nil).GetFollowee), ctx, follower, limit, offset)
 }
 
 // InactiveFollowRelation mocks base method.
