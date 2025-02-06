@@ -257,7 +257,7 @@ func InitDB() *gorm.DB {
 `)
 		f.Close()
 	}
-	if !cache {
+	if cache {
 		f, err := os.OpenFile(prefixDir+"/ioc/redis.go", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 		if err != nil {
 			panic(err)
