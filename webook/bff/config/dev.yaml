@@ -1,0 +1,19 @@
+etcd:
+  addrs:
+    - localhost:2379
+
+http:
+  addr: ":8080"
+
+grpc:
+  client:
+    user:
+      target: "etcd:///service/user"
+    article:
+      target: "etcd:///service/article"
+    code:
+      target: "etcd:///service/code"
+    intr:
+      target: "etcd:///service/interactive"
+    reward:
+      target: "etcd:///service/reward"

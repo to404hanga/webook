@@ -1,8 +1,8 @@
 package ioc
 
 import (
+	"webook/interactive/events"
 	events2 "webook/interactive/events"
-	"webook/internal/events"
 
 	"github.com/IBM/sarama"
 	"github.com/spf13/viper"

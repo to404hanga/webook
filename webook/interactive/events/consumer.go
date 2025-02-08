@@ -13,6 +13,10 @@ import (
 
 const TopicReadEvent = "article_read"
 
+type Consumer interface {
+	Start() error
+}
+
 type ReadEvent struct {
 	Aid int64
 	Uid int64

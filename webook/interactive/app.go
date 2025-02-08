@@ -1,7 +1,7 @@
 package main
 
 import (
-	"webook/internal/events"
+	"webook/interactive/events"
 
 	"github.com/to404hanga/pkg404/ginx"
 	"github.com/to404hanga/pkg404/grpcx"
