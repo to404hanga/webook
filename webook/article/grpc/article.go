@@ -52,7 +52,7 @@ func (a *ArticleServiceServer) List(ctx context.Context, req *articlev1.ListRequ
 	if err != nil {
 		return nil, err
 	}
-	list := transform.SliceFromSlice[domain.Article, *articlev1.Article](articleList, func(art domain.Article) *articlev1.Article {
+	list := transform.SliceFromSlice[domain.Article, *articlev1.Article](articleList, func(idx int, art domain.Article) *articlev1.Article {
 		return a.convertToV(art)
 	})
 	return &articlev1.ListResponse{
@@ -85,7 +85,7 @@ func (a *ArticleServiceServer) ListPub(ctx context.Context, req *articlev1.ListP
 	if err != nil {
 		return nil, err
 	}
-	list := transform.SliceFromSlice[domain.Article, *articlev1.Article](articleList, func(art domain.Article) *articlev1.Article {
+	list := transform.SliceFromSlice[domain.Article, *articlev1.Article](articleList, func(idx int, art domain.Article) *articlev1.Article {
 		return a.convertToV(art)
 	})
 	return &articlev1.ListPubResponse{

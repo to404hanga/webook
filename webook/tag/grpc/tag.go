@@ -29,7 +29,7 @@ func (t *TagServiceServer) GetBizTags(ctx context.Context, req *tagv1.GetBizTags
 		return nil, err
 	}
 	return &tagv1.GetBizTagsResponse{
-		Tags: transform.SliceFromSlice[domain.Tag, *tagv1.Tag](res, func(src domain.Tag) *tagv1.Tag {
+		Tags: transform.SliceFromSlice[domain.Tag, *tagv1.Tag](res, func(idx int, src domain.Tag) *tagv1.Tag {
 			return t.toDTO(src)
 		}),
 	}, nil
@@ -41,7 +41,7 @@ func (t *TagServiceServer) GetTags(ctx context.Context, req *tagv1.GetTagsReques
 		return nil, err
 	}
 	return &tagv1.GetTagsResponse{
-		Tags: transform.SliceFromSlice[domain.Tag, *tagv1.Tag](tags, func(src domain.Tag) *tagv1.Tag {
+		Tags: transform.SliceFromSlice[domain.Tag, *tagv1.Tag](tags, func(idx int, src domain.Tag) *tagv1.Tag {
 			return t.toDTO(src)
 		}),
 	}, nil

@@ -37,7 +37,7 @@ func (f *FeedServiceServer) FindFeedEvents(ctx context.Context, req *feedv1.Find
 	if err != nil {
 		return &feedv1.FindFeedEventsResponse{}, err
 	}
-	res := transform.SliceFromSlice[domain.FeedEvent, *feedv1.FeedEvent](events, func(fe domain.FeedEvent) *feedv1.FeedEvent {
+	res := transform.SliceFromSlice[domain.FeedEvent, *feedv1.FeedEvent](events, func(idx int, fe domain.FeedEvent) *feedv1.FeedEvent {
 		return f.convertToView(fe)
 	})
 	return &feedv1.FindFeedEventsResponse{

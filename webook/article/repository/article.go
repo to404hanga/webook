@@ -112,7 +112,7 @@ func (c *CachedArticleRepository) List(ctx context.Context, author int64, limit,
 	if err != nil {
 		return nil, err
 	}
-	res := transform.SliceFromSlice[dao.Article, domain.Article](articles, func(a dao.Article) domain.Article {
+	res := transform.SliceFromSlice[dao.Article, domain.Article](articles, func(idx int, a dao.Article) domain.Article {
 		return c.ToDomain(a)
 	})
 

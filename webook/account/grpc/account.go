@@ -33,7 +33,7 @@ func (a *AccountServiceServer) toDomain(c *accountv1.CreditRequest) domain.Credi
 	return domain.Credit{
 		Biz:   c.GetBiz(),
 		BizId: c.GetBizId(),
-		Items: transform.SliceFromSlice(c.Items, func(src *accountv1.CreditItem) domain.CreditItem {
+		Items: transform.SliceFromSlice(c.Items, func(idx int, src *accountv1.CreditItem) domain.CreditItem {
 			return a.itemToDomain(src)
 		}),
 	}

@@ -56,7 +56,7 @@ func (s *Service) Send(ctx context.Context, tplId string, args []string, numbers
 }
 
 func (s *Service) toPtrSlice(data []string) []*string {
-	return transform.SliceFromSlice[string, *string](data, func(s string) *string {
+	return transform.SliceFromSlice[string, *string](data, func(idx int, s string) *string {
 		return &s
 	})
 }

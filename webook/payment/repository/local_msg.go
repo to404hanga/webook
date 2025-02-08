@@ -24,7 +24,7 @@ func NewLocalMsgGormRepository(db *gorm.DB) *LocalMsgGormRepository {
 
 func (l *LocalMsgGormRepository) FindInitMsg(ctx context.Context, limit, offset int) ([]domain.Msg, error) {
 	msgs, err := l.dao.FindInitMsg(ctx, limit, offset)
-	return transform.SliceFromSlice(msgs, func(src dao.Msg) domain.Msg {
+	return transform.SliceFromSlice(msgs, func(idx int, src dao.Msg) domain.Msg {
 		return domain.Msg{
 			Id:         src.Id,
 			Content:    src.Content,

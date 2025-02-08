@@ -30,7 +30,7 @@ func (s *SearchServiceServer) Search(ctx context.Context, req *searchv1.SearchRe
 	}
 	return &searchv1.SearchResponse{
 		User: &searchv1.UserResult{
-			Users: transform.SliceFromSlice[domain.User, *searchv1.User](resp.Users, func(u domain.User) *searchv1.User {
+			Users: transform.SliceFromSlice[domain.User, *searchv1.User](resp.Users, func(idx int, u domain.User) *searchv1.User {
 				return &searchv1.User{
 					Id:       u.Id,
 					Email:    u.Email,
@@ -40,7 +40,7 @@ func (s *SearchServiceServer) Search(ctx context.Context, req *searchv1.SearchRe
 			}),
 		},
 		Article: &searchv1.ArticleResult{
-			Articles: transform.SliceFromSlice[domain.Article, *searchv1.Article](resp.Articles, func(a domain.Article) *searchv1.Article {
+			Articles: transform.SliceFromSlice[domain.Article, *searchv1.Article](resp.Articles, func(idx int, a domain.Article) *searchv1.Article {
 				return &searchv1.Article{
 					Id:      a.Id,
 					Title:   a.Title,

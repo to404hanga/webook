@@ -57,7 +57,7 @@ func (c *CachedFeedEventRepository) FindPullEvents(ctx context.Context, uids []i
 	if err != nil {
 		return nil, err
 	}
-	ans := transform.SliceFromSlice[dao.FeedPullEvent, domain.FeedEvent](events, func(fpe dao.FeedPullEvent) domain.FeedEvent {
+	ans := transform.SliceFromSlice[dao.FeedPullEvent, domain.FeedEvent](events, func(idx int, fpe dao.FeedPullEvent) domain.FeedEvent {
 		return c.toPullEventDomain(fpe)
 	})
 	return ans, nil
@@ -68,7 +68,7 @@ func (c *CachedFeedEventRepository) FindPushEvents(ctx context.Context, uid, tim
 	if err != nil {
 		return nil, err
 	}
-	ans := transform.SliceFromSlice[dao.FeedPushEvent, domain.FeedEvent](events, func(fpe dao.FeedPushEvent) domain.FeedEvent {
+	ans := transform.SliceFromSlice[dao.FeedPushEvent, domain.FeedEvent](events, func(idx int, fpe dao.FeedPushEvent) domain.FeedEvent {
 		return c.toPushEventDomain(fpe)
 	})
 	return ans, nil
@@ -91,7 +91,7 @@ func (c *CachedFeedEventRepository) FindPullEventsWithType(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	ans := transform.SliceFromSlice[dao.FeedPullEvent, domain.FeedEvent](events, func(fpe dao.FeedPullEvent) domain.FeedEvent {
+	ans := transform.SliceFromSlice[dao.FeedPullEvent, domain.FeedEvent](events, func(idx int, fpe dao.FeedPullEvent) domain.FeedEvent {
 		return c.toPullEventDomain(fpe)
 	})
 	return ans, nil
@@ -102,7 +102,7 @@ func (c *CachedFeedEventRepository) FindPushEventsWithType(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	ans := transform.SliceFromSlice[dao.FeedPushEvent, domain.FeedEvent](events, func(fpe dao.FeedPushEvent) domain.FeedEvent {
+	ans := transform.SliceFromSlice[dao.FeedPushEvent, domain.FeedEvent](events, func(idx int, fpe dao.FeedPushEvent) domain.FeedEvent {
 		return c.toPushEventDomain(fpe)
 	})
 	return ans, nil

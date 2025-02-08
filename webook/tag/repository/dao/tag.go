@@ -63,7 +63,7 @@ func (g *GormTagDAO) GetTagsByBiz(ctx context.Context, uid int64, biz string, bi
 	if err != nil {
 		return nil, err
 	}
-	return transform.SliceFromSlice[TagBiz, Tag](tagBizs, func(tb TagBiz) Tag {
+	return transform.SliceFromSlice[TagBiz, Tag](tagBizs, func(idx int, tb TagBiz) Tag {
 		return *tb.Tag
 	}), nil
 }

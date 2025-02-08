@@ -37,13 +37,13 @@ func (a *ArticleElasticSearchDAO) Search(ctx context.Context, req SearchReq, key
 	title := elastic.NewMatchQuery("title", queryString)
 	content := elastic.NewMatchQuery("content", queryString)
 
-	tag := elastic.NewTermsQuery("id", transform.SliceFromSlice[int64, any](req.TagIds, func(i int64) any {
+	tag := elastic.NewTermsQuery("id", transform.SliceFromSlice[int64, any](req.TagIds, func(idx int, i int64) any {
 		return i
 	})...).Boost(2)
-	collect := elastic.NewTermsQuery("id", transform.SliceFromSlice[int64, any](req.CollectIds, func(i int64) any {
+	collect := elastic.NewTermsQuery("id", transform.SliceFromSlice[int64, any](req.CollectIds, func(idx int, i int64) any {
 		return i
 	})...).Boost(4)
-	like := elastic.NewTermsQuery("id", transform.SliceFromSlice[int64, any](req.LikeIds, func(i int64) any {
+	like := elastic.NewTermsQuery("id", transform.SliceFromSlice[int64, any](req.LikeIds, func(idx int, i int64) any {
 		return i
 	})...).Boost(2)
 

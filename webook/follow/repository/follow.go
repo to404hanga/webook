@@ -106,7 +106,7 @@ func (repo *CachedFollowRepository) toEntity(fs domain.FollowRelation) dao.Follo
 }
 
 func (repo *CachedFollowRepository) genFollowRelationList(followerList []dao.FollowRelation) []domain.FollowRelation {
-	return transform.SliceFromSlice[dao.FollowRelation, domain.FollowRelation](followerList, func(fr dao.FollowRelation) domain.FollowRelation {
+	return transform.SliceFromSlice[dao.FollowRelation, domain.FollowRelation](followerList, func(idx int, fr dao.FollowRelation) domain.FollowRelation {
 		return repo.toDomain(fr)
 	})
 }

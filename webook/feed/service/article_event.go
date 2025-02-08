@@ -48,7 +48,7 @@ func (a *ArticleEventHandler) CreateFeedEvent(ctx context.Context, ext domain.Ex
 
 	now := time.Now()
 	// 粉丝多，使用拉模型
-	if resp.FollowStatic.Followers > threshold {
+	if resp.GetFollowStatic().GetFollowers() > threshold {
 		return a.repo.CreatePullEvent(ctx, domain.FeedEvent{
 			Uid:        uid,
 			Type:       ArticleEventName,
@@ -62,7 +62,7 @@ func (a *ArticleEventHandler) CreateFeedEvent(ctx context.Context, ext domain.Ex
 		if err != nil {
 			return err
 		}
-		events := transform.SliceFromSlice[*followv1.FollowRelation, domain.FeedEvent](resp.GetFollowRelations(), func(fr *followv1.FollowRelation) domain.FeedEvent {
+		events := transform.SliceFromSlice[*followv1.FollowRelation, domain.FeedEvent](resp.GetFollowRelations(), func(idx int, fr *followv1.FollowRelation) domain.FeedEvent {
 			return domain.FeedEvent{
 				Uid:        fr.Follower,
 				CreateTime: now,
@@ -89,7 +89,7 @@ func (a *ArticleEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp
 		if err != nil {
 			return err
 		}
-		followeeIds := transform.SliceFromSlice[*followv1.FollowRelation, int64](resp.GetFollowRelations(), func(fr *followv1.FollowRelation) int64 {
+		followeeIds := transform.SliceFromSlice[*followv1.FollowRelation, int64](resp.GetFollowRelations(), func(idx int, fr *followv1.FollowRelation) int64 {
 			return fr.GetFollowee()
 		})
 		evts, err := a.repo.FindPullEventsWithType(ctx, ArticleEventName, followeeIds, timestamp, limit)
@@ -119,4 +119,72 @@ func (a *ArticleEventHandler) FindFeedEvents(ctx context.Context, uid, timestamp
 		return events[i].CreateTime.UnixMilli() > events[j].CreateTime.UnixMilli()
 	})
 	return events[:min(limit, len(events))], nil
+}
+
+// CreateFeedEvent 支持活跃用户的 CreateFeedEvent 版本
+func (a *ArticleEventHandler) CreateFeedEventV1(ctx context.Context, ext domain.ExtendFields) error {
+	uid, err := ext.Get("followee").AsInt64()
+	if err != nil {
+		return err
+	}
+
+	resp, err := a.followClient.GetFollowStatic(ctx, &followv1.GetFollowStaticRequest{
+		Followee: uid,
+	})
+	if err != nil {
+		return err
+	}
+
+	if resp.GetFollowStatic().GetFollowers() > threshold {
+		resp, err := a.followClient.GetFollower(ctx, &followv1.GetFollowerRequest{
+			Followee: uid,
+		})
+		if err != nil {
+			return err
+		}
+
+		events := transform.FilterSliceFromSlice[*followv1.FollowRelation, domain.FeedEvent](resp.GetFollowRelations(), func(i int, fr *followv1.FollowRelation) (domain.FeedEvent, bool) {
+			if !a.isActiveUser(fr.GetFollower()) {
+				return domain.FeedEvent{}, false
+			}
+			return domain.FeedEvent{
+				Uid:        fr.GetFollower(),
+				CreateTime: time.Now(),
+				Type:       ArticleEventName,
+				Ext:        ext,
+			}, true
+		})
+
+		err = a.repo.CreatePushEvents(ctx, events)
+		if err != nil {
+			return err
+		}
+		// 拉模型
+		return a.repo.CreatePullEvent(ctx, domain.FeedEvent{
+			Uid:        uid,
+			Type:       ArticleEventName,
+			CreateTime: time.Now(),
+			Ext:        ext,
+		})
+	} else {
+		resp, err := a.followClient.GetFollower(ctx, &followv1.GetFollowerRequest{
+			Followee: uid,
+		})
+		if err != nil {
+			return err
+		}
+		events := transform.SliceFromSlice[*followv1.FollowRelation, domain.FeedEvent](resp.GetFollowRelations(), func(i int, fr *followv1.FollowRelation) domain.FeedEvent {
+			return domain.FeedEvent{
+				Uid:        fr.GetFollower(),
+				CreateTime: time.Now(),
+				Type:       ArticleEventName,
+				Ext:        ext,
+			}
+		})
+		return a.repo.CreatePushEvents(ctx, events)
+	}
+}
+
+func (a *ArticleEventHandler) isActiveUser(uid int64) bool {
+	return false
 }

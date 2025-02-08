@@ -61,7 +61,7 @@ func (c *CommentServiceServer) CreateComment(ctx context.Context, req *commentv1
 }
 
 func (c *CommentServiceServer) toDTO(cs []domain.Comment) []*commentv1.Comment {
-	rpcComments := transform.SliceFromSlice[domain.Comment, *commentv1.Comment](cs, func(cmt domain.Comment) *commentv1.Comment {
+	rpcComments := transform.SliceFromSlice[domain.Comment, *commentv1.Comment](cs, func(idx int, cmt domain.Comment) *commentv1.Comment {
 		rpcComment := &commentv1.Comment{
 			Id:         cmt.Id,
 			Uid:        cmt.Commentator.Id,

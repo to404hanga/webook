@@ -77,7 +77,7 @@ func (s *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error
 		if err != nil {
 			return nil, err
 		}
-		articles := transform.SliceFromSlice[*articlev1.Article, domain.Article](resp.GetArticles(), func(a *articlev1.Article) domain.Article {
+		articles := transform.SliceFromSlice[*articlev1.Article, domain.Article](resp.GetArticles(), func(idx int, a *articlev1.Article) domain.Article {
 			return articleToDomain(a)
 		})
 		ids := make([]int64, 0, len(articles))

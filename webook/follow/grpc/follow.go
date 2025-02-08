@@ -31,7 +31,7 @@ func (f *FollowServiceServer) GetFollowee(ctx context.Context, req *followv1.Get
 		return nil, err
 	}
 	return &followv1.GetFolloweeResponse{
-		FollowRelations: transform.SliceFromSlice[domain.FollowRelation, *followv1.FollowRelation](relationList, func(fr domain.FollowRelation) *followv1.FollowRelation {
+		FollowRelations: transform.SliceFromSlice[domain.FollowRelation, *followv1.FollowRelation](relationList, func(idx int, fr domain.FollowRelation) *followv1.FollowRelation {
 			return f.convertToView(fr)
 		}),
 	}, nil
@@ -58,7 +58,7 @@ func (f *FollowServiceServer) GetFollower(ctx context.Context, req *followv1.Get
 		return nil, err
 	}
 	return &followv1.GetFollowerResponse{
-		FollowRelations: transform.SliceFromSlice[domain.FollowRelation, *followv1.FollowRelation](relationList, func(fr domain.FollowRelation) *followv1.FollowRelation {
+		FollowRelations: transform.SliceFromSlice[domain.FollowRelation, *followv1.FollowRelation](relationList, func(idx int, fr domain.FollowRelation) *followv1.FollowRelation {
 			return f.convertToView(fr)
 		}),
 	}, nil

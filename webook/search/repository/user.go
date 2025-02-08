@@ -32,7 +32,7 @@ func (u *userRepository) SearchUser(ctx context.Context, keywords []string) ([]d
 	if err != nil {
 		return nil, err
 	}
-	return transform.SliceFromSlice[dao.User, domain.User](users, func(user dao.User) domain.User {
+	return transform.SliceFromSlice[dao.User, domain.User](users, func(idx int, user dao.User) domain.User {
 		return domain.User{
 			Id:       user.Id,
 			Email:    user.Email,

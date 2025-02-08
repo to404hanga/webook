@@ -53,7 +53,7 @@ func (c *CachedTagRepository) GetBizTags(ctx context.Context, uid int64, biz str
 	if err != nil {
 		return nil, err
 	}
-	return transform.SliceFromSlice[dao.Tag, domain.Tag](tags, func(t dao.Tag) domain.Tag {
+	return transform.SliceFromSlice[dao.Tag, domain.Tag](tags, func(idx int, t dao.Tag) domain.Tag {
 		return c.toDomain(t)
 	}), nil
 }
@@ -73,7 +73,7 @@ func (c *CachedTagRepository) GetTags(ctx context.Context, uid int64) ([]domain.
 	if err != nil {
 		return nil, err
 	}
-	res = transform.SliceFromSlice[dao.Tag, domain.Tag](tags, func(t dao.Tag) domain.Tag {
+	res = transform.SliceFromSlice[dao.Tag, domain.Tag](tags, func(idx int, t dao.Tag) domain.Tag {
 		return c.toDomain(t)
 	})
 
@@ -88,7 +88,7 @@ func (c *CachedTagRepository) GetTags(ctx context.Context, uid int64) ([]domain.
 }
 
 func (c *CachedTagRepository) BindTagToBiz(ctx context.Context, uid int64, biz string, bizId int64, tags []int64) error {
-	return c.dao.CreateTagBiz(ctx, transform.SliceFromSlice[int64, dao.TagBiz](tags, func(i int64) dao.TagBiz {
+	return c.dao.CreateTagBiz(ctx, transform.SliceFromSlice[int64, dao.TagBiz](tags, func(idx int, i int64) dao.TagBiz {
 		return dao.TagBiz{
 			Tid:   i,
 			BizId: bizId,
@@ -103,7 +103,7 @@ func (c *CachedTagRepository) GetTagsById(ctx context.Context, ids []int64) ([]d
 	if err != nil {
 		return nil, err
 	}
-	return transform.SliceFromSlice[dao.Tag, domain.Tag](tags, func(t dao.Tag) domain.Tag {
+	return transform.SliceFromSlice[dao.Tag, domain.Tag](tags, func(idx int, t dao.Tag) domain.Tag {
 		return c.toDomain(t)
 	}), nil
 }

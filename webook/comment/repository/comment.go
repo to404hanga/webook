@@ -74,7 +74,7 @@ func (c *CachedCommentRepository) GetCommentByIds(ctx context.Context, ids []int
 	if err != nil {
 		return nil, err
 	}
-	cs := transform.SliceFromSlice[dao.Comment, domain.Comment](vals, func(cmt dao.Comment) domain.Comment {
+	cs := transform.SliceFromSlice[dao.Comment, domain.Comment](vals, func(idx int, cmt dao.Comment) domain.Comment {
 		return c.toDomain(cmt)
 	})
 	return cs, nil
@@ -85,7 +85,7 @@ func (c *CachedCommentRepository) GetMoreReplies(ctx context.Context, rootId, ma
 	if err != nil {
 		return nil, err
 	}
-	res := transform.SliceFromSlice[dao.Comment, domain.Comment](cs, func(cmt dao.Comment) domain.Comment {
+	res := transform.SliceFromSlice[dao.Comment, domain.Comment](cs, func(idx int, cmt dao.Comment) domain.Comment {
 		return c.toDomain(cmt)
 	})
 	return res, nil

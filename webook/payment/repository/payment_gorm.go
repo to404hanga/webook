@@ -34,7 +34,7 @@ func (p *PaymentGormRepository) FindExpiredPayment(ctx context.Context, limit, o
 	if err != nil {
 		return nil, err
 	}
-	return transform.SliceFromSlice[dao.Payment, domain.Payment](pmts, func(src dao.Payment) domain.Payment {
+	return transform.SliceFromSlice[dao.Payment, domain.Payment](pmts, func(idx int, src dao.Payment) domain.Payment {
 		return p.toDomain(src)
 	}), nil
 }

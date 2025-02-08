@@ -34,7 +34,7 @@ func (repo *accountRepository) SetUnique(ctx context.Context, c domain.Credit) e
 
 func (repo *accountRepository) AddCredit(ctx context.Context, c domain.Credit) error {
 	now := time.Now().UnixMilli()
-	activities := transform.SliceFromSlice[domain.CreditItem, dao.AccountActivity](c.Items, func(ci domain.CreditItem) dao.AccountActivity {
+	activities := transform.SliceFromSlice[domain.CreditItem, dao.AccountActivity](c.Items, func(idx int, ci domain.CreditItem) dao.AccountActivity {
 		return dao.AccountActivity{
 			Uid:         ci.Uid,
 			Biz:         c.Biz,

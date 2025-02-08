@@ -62,7 +62,7 @@ func (t *tagService) AttachTags(ctx context.Context, uid int64, biz string, bizI
 			Biz:   biz,
 			BizId: bizId,
 			Uid:   uid,
-			Tags: transform.SliceFromSlice[domain.Tag, string](tags, func(src domain.Tag) string {
+			Tags: transform.SliceFromSlice[domain.Tag, string](tags, func(idx int, src domain.Tag) string {
 				return src.Name
 			}),
 		})

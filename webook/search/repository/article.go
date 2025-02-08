@@ -65,7 +65,7 @@ func (a *articleRepository) SearchArticle(ctx context.Context, uid int64, keywor
 	if err != nil {
 		return nil, err
 	}
-	return transform.SliceFromSlice[dao.Article, domain.Article](articles, func(src dao.Article) domain.Article {
+	return transform.SliceFromSlice[dao.Article, domain.Article](articles, func(idx int, src dao.Article) domain.Article {
 		return domain.Article{
 			Id:      src.Id,
 			Title:   src.Title,
